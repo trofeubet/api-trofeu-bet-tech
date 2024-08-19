@@ -1,0 +1,69 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+}
+
+enum Sectores {
+  RISCO
+  FINANCEIRO
+  AFILIADOS
+  GERENCIAL
+  TRAFEGO
+  USER
+  DESENVOLVIMENTO
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  gender       String
+  email        String   @unique
+  password     String
+  status       Status   @default(INACTIVE)
+  date_created DateTime @default(now())
+  sector       Sectores @default(USER)
+
+  @@map("users")
+}
+
+model Player {
+  id                        String    @id @default(uuid())
+  id_platform               Int       @unique
+  name                      String
+  tell                      String
+  email                     String    @unique
+  date_created              DateTime
+  date_birth                DateTime?
+  platform_regitration_date DateTime?
+  Wallet                    Wallet?
+
+  @@map("players")
+}
+
+model Wallet {
+  id                   String   @id @default(uuid())
+  id_player            String   @unique
+  ftd_value            Float
+  ftd_date             DateTime?
+  qtd_deposits         Int
+  total_deposit_amount Float
+  total_withdrawals    Float
+  qtd_withdrawals      Int
+
+  player Player @relation(fields: [id_player], references: [id])
+}
