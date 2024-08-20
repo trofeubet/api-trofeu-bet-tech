@@ -42,28 +42,41 @@ model User {
 }
 
 model Player {
-  id                        String    @id @default(uuid())
-  id_platform               Int       @unique
+  id                        String           @id @default(uuid())
+  id_platform               Int              @unique
   name                      String
+  cpf                       String?          @unique
   tell                      String
-  email                     String    @unique
+  email                     String           @unique
   date_created              DateTime
   date_birth                DateTime?
   platform_regitration_date DateTime?
   Wallet                    Wallet?
+  Deposits_month            Deposits_month[]
 
   @@map("players")
 }
 
 model Wallet {
-  id                   String   @id @default(uuid())
-  id_player            String   @unique
+  id                   String    @id @default(uuid())
+  id_player            String    @unique
   ftd_value            Float
   ftd_date             DateTime?
   qtd_deposits         Int
   total_deposit_amount Float
   total_withdrawals    Float
   qtd_withdrawals      Int
+
+  player Player @relation(fields: [id_player], references: [id])
+}
+
+model Deposits_month {
+  id                  String    @id @default(uuid())
+  id_player           String    
+  cpf                 String    
+  date_deposits       DateTime?
+  valor_total_deposit Float
+  date_created        DateTime
 
   player Player @relation(fields: [id_player], references: [id])
 }
