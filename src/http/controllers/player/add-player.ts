@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeAddPlayerUseCase } from "@/use-cases/factories/player/make-add-player-use-case";
-import { PlayerAlreadyExistsError } from "@/use-cases/errors/player-already-exists";
-import { ErrorCreatingPlayer } from "@/use-cases/errors/player-error-creating";
-import { UserAlreadyExistsError } from "@/use-cases/errors/user-already-exists";
+import { makeAddPlayerUseCase } from "@/use-cases/@factories/player/make-add-player-use-case";
+import { PlayerAlreadyExistsError } from "@/use-cases/@errors/player-already-exists";
+import { ErrorCreatingPlayer } from "@/use-cases/@errors/player-error-creating";
+import { UserAlreadyExistsError } from "@/use-cases/@errors/user-already-exists";
 
 export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
     const addPlayerBodySchema = z.object({
@@ -18,7 +18,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
         total_deposit_amount: z.number(),
         total_withdrawals: z.number(),
         qtd_withdrawals: z.number(),
-        platform_regitration_date: z.string().nullable()
+        platform_regitration_date: z.string().nullable(),
+        cpf: z.string(),
     })
 
     const { 
@@ -33,7 +34,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
         total_deposit_amount, 
         total_withdrawals, 
         qtd_withdrawals ,
-        platform_regitration_date
+        platform_regitration_date,
+        cpf
     } = addPlayerBodySchema.parse(request.body)
 
     try {
@@ -51,7 +53,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
             total_deposit_amount,
             total_withdrawals,
             qtd_withdrawals,
-            platform_regitration_date
+            platform_regitration_date,
+            cpf
         })
 
         return reply.status(201).send({

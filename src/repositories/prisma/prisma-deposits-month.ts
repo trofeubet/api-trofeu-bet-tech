@@ -24,4 +24,33 @@ export class PrismaDepositsMonthRepository implements DepositsMonthRepository {
         
         return player
     }
+
+    async updateDepositsMonth(data: Prisma.Deposits_monthUpdateInput): Promise<Deposits_month> {
+        const deposits_month = await prisma.deposits_month.update({
+            where: {
+                id: data.id?.toString()
+            },
+            data
+        })
+
+        return deposits_month
+    }
+
+    async findDepositsMonthByDateCpf(date: Date, cpf: string): Promise<Deposits_month | null> {
+        const startOfDay = new Date(date.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(date.setHours(23, 59, 59, 999));
+    
+        const deposits_month = await prisma.deposits_month.findFirst({
+            where: {
+                cpf: cpf,
+                date_deposits: {
+                    gte: startOfDay,
+                    lte: endOfDay
+                }
+            }
+        });
+    
+        return deposits_month;
+    }
+    
 }

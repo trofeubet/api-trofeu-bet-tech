@@ -1,7 +1,7 @@
 import { DepositsMonthRepository } from "@/repositories/deposit-month-repository";
 import { Deposits_month } from "@prisma/client";
-import { PlayerNotExistsError } from "../errors/player-not-exists";
-import { DepositAlreadyExist } from "../errors/deposit-already-exist";
+import { PlayerNotExistsError } from "../@errors/player-not-exists";
+import { DepositAlreadyExist } from "../@errors/deposit-already-exist";
 
 interface AddDepositMonthRequest {
     cpf: string;
