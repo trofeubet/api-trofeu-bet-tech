@@ -1,8 +1,8 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeAddDepositMonthUseCase } from "@/use-cases/factories/deposits-month/make-add-deposit-month-use-case";
-import { PlayerNotExistsError } from "@/use-cases/errors/player-not-exists";
-import { DepositAlreadyExist } from "@/use-cases/errors/deposit-already-exist";
+import { makeAddDepositMonthUseCase } from "@/use-cases/@factories/deposits-month/make-add-deposit-month-use-case";
+import { PlayerNotExistsError } from "@/use-cases/@errors/player-not-exists";
+import { DepositAlreadyExist } from "@/use-cases/@errors/deposit-already-exist";
 
 export async function addDepositsMonth(request: FastifyRequest, reply: FastifyReply) {
     const addDepositsMonthBodySchema = z.object({

@@ -1,9 +1,9 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeAddPlayerUseCase } from "@/use-cases/factories/player/make-add-player-use-case";
-import { PlayerAlreadyExistsError } from "@/use-cases/errors/player-already-exists";
-import { ErrorCreatingPlayer } from "@/use-cases/errors/player-error-creating";
-import { UserAlreadyExistsError } from "@/use-cases/errors/user-already-exists";
+import { makeAddPlayerUseCase } from "@/use-cases/@factories/player/make-add-player-use-case";
+import { PlayerAlreadyExistsError } from "@/use-cases/@errors/player-already-exists";
+import { ErrorCreatingPlayer } from "@/use-cases/@errors/player-error-creating";
+import { UserAlreadyExistsError } from "@/use-cases/@errors/user-already-exists";
 
 export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
     const addPlayerBodySchema = z.object({
