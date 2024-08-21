@@ -18,7 +18,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
         total_deposit_amount: z.number(),
         total_withdrawals: z.number(),
         qtd_withdrawals: z.number(),
-        platform_regitration_date: z.string().nullable()
+        platform_regitration_date: z.string().nullable(),
+        cpf: z.string(),
     })
 
     const { 
@@ -33,7 +34,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
         total_deposit_amount, 
         total_withdrawals, 
         qtd_withdrawals ,
-        platform_regitration_date
+        platform_regitration_date,
+        cpf
     } = addPlayerBodySchema.parse(request.body)
 
     try {
@@ -51,7 +53,8 @@ export async function addPlayer(request: FastifyRequest, reply: FastifyReply) {
             total_deposit_amount,
             total_withdrawals,
             qtd_withdrawals,
-            platform_regitration_date
+            platform_regitration_date,
+            cpf
         })
 
         return reply.status(201).send({

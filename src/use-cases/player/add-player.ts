@@ -16,6 +16,7 @@ interface AddPlayerRequest {
     total_withdrawals: number;
     qtd_withdrawals: number;
     platform_regitration_date: string | null;
+    cpf: string;
 }
 
 interface AddPlayerResponse {
@@ -39,7 +40,8 @@ export class AddPlayerUseCase {
         total_deposit_amount,
         total_withdrawals,
         qtd_withdrawals,
-        platform_regitration_date
+        platform_regitration_date,
+        cpf
     }: AddPlayerRequest): Promise<AddPlayerResponse> {
         
         const player = await this.playersRepository.findByIdPlatform(id_platform);
@@ -66,6 +68,7 @@ export class AddPlayerUseCase {
             tell,
             date_birth: parsedDate,
             date_created: new Date(),
+            cpf,
             platform_regitration_date: parsedPlataformRegistrationDate,
             Wallet: {
                 create: {
