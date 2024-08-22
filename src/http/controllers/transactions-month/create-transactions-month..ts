@@ -4,6 +4,7 @@ import { makeAddTransactionsMonthUseCase } from "@/use-cases/@factories/transact
 import { PlayerNotExistsError } from "@/use-cases/@errors/player-not-exists";
 import { DepositAlreadyExist } from "@/use-cases/@errors/deposit-already-exist";
 import { Transactions } from "@prisma/client";
+import { makeGetTransactionsMonthByCpfDateUseCase } from "@/use-cases/@factories/transactions-month/make-get-transaction-month-cpf-date-use-case";
 
 export async function createTransactionsMonth(request: FastifyRequest, reply: FastifyReply) {
     const addTransactionsMonthBodySchema = z.object({
@@ -19,6 +20,7 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
 
     try {
         const addTransactionsMonthUseCase = makeAddTransactionsMonthUseCase();
+        const getTransactionsMonthUseCase = makeGetTransactionsMonthByCpfDateUseCase();
 
         // Objeto para armazenar os totais de cada mês por CPF
         const monthlyCredits: { [key: string]: { [cpf: string]: number } } = {};
@@ -60,6 +62,20 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
             const date_transactions = new Date(Number(year), Number(month) - 1, 1);
 
             for (const [cpf, totalCredit] of Object.entries(cpfCredits)) {
+
+                const transactionExist = await getTransactionsMonthUseCase.execute({
+                    cpf,
+                    date_transactions,
+                    type_transactions
+                });
+                console.log(transactionExist)
+                
+                if (transactionExist.transaction_month.id != '') {
+                    return reply.status(409).send({
+                        message: `Transação do tipo ${type_transactions} para CPF ${cpf} no mês ${monthYear} já existe.`,
+                    });
+                }
+
                 await addTransactionsMonthUseCase.execute({
                     cpf,
                     date_transactions,
