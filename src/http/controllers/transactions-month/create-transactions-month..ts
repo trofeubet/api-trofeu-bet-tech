@@ -1,11 +1,14 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
-import { makeAddDepositMonthUseCase } from "@/use-cases/@factories/deposits-month/make-add-deposit-month-use-case";
+import { makeAddTransactionsMonthUseCase } from "@/use-cases/@factories/transactions-month/make-add-transaction-month-use-case";
 import { PlayerNotExistsError } from "@/use-cases/@errors/player-not-exists";
 import { DepositAlreadyExist } from "@/use-cases/@errors/deposit-already-exist";
+import { Transactions } from "@prisma/client";
+import { makeGetTransactionsMonthByCpfDateUseCase } from "@/use-cases/@factories/transactions-month/make-get-transaction-month-cpf-date-use-case";
 
-export async function createDepositsMonth(request: FastifyRequest, reply: FastifyReply) {
-    const addDepositsMonthBodySchema = z.object({
+export async function createTransactionsMonth(request: FastifyRequest, reply: FastifyReply) {
+    const addTransactionsMonthBodySchema = z.object({
+        type_transactions: z.enum(['DEPOSIT', 'WITHDRAWALS']),
         rows: z.array(z.object({
             data: z.string(),
             cpf: z.string(),
@@ -13,10 +16,11 @@ export async function createDepositsMonth(request: FastifyRequest, reply: Fastif
         }))
     });
 
-    const { rows } = addDepositsMonthBodySchema.parse(request.body);
+    const { type_transactions, rows } = addTransactionsMonthBodySchema.parse(request.body);
 
     try {
-        const addDepositsMonthUseCase = makeAddDepositMonthUseCase();
+        const addTransactionsMonthUseCase = makeAddTransactionsMonthUseCase();
+        const getTransactionsMonthUseCase = makeGetTransactionsMonthByCpfDateUseCase();
 
         // Objeto para armazenar os totais de cada mês por CPF
         const monthlyCredits: { [key: string]: { [cpf: string]: number } } = {};
@@ -37,50 +41,52 @@ export async function createDepositsMonth(request: FastifyRequest, reply: Fastif
 
             // Verifica se a data foi convertida corretamente
             if (!dateStr) {
-                // console.error(`Data inválida: ${data}`);
                 continue;
             }
 
-            // Formata para "YYYY-MM" para agrupar por mês e ano
             const [year, month, day] = dateStr.split('-');
             const monthYearKey = `${year}-${month}`;
 
-            // Inicializa o objeto para o CPF se ainda não existir
             if (!monthlyCredits[monthYearKey]) {
                 monthlyCredits[monthYearKey] = {};
             }
 
-            // Soma os créditos para o CPF e mês correspondente
             if (!monthlyCredits[monthYearKey][cpf]) {
                 monthlyCredits[monthYearKey][cpf] = 0;
             }
             monthlyCredits[monthYearKey][cpf] += credito;
-
-            // Logs para verificação do estado atual
-            // console.log(`Row: ${JSON.stringify(row)}`);
-            // console.log(`MonthYearKey: ${monthYearKey}, CPF: ${cpf}, Total Credit: ${monthlyCredits[monthYearKey][cpf]}`);
         }
 
-        // Log para depuração final
-        //console.log("Monthly Credits Final:", JSON.stringify(monthlyCredits, null, 2));
-
-        // Agora, insere cada total mensal no banco de dados
         for (const [monthYear, cpfCredits] of Object.entries(monthlyCredits)) {
             const [year, month] = monthYear.split('-');
-            const date_deposits = new Date(Number(year), Number(month) - 1, 1); // Ajuste para a data correta do mês
+            const date_transactions = new Date(Number(year), Number(month) - 1, 1);
 
             for (const [cpf, totalCredit] of Object.entries(cpfCredits)) {
-                //console.log(`Inserting for CPF ${cpf}, Date: ${date_deposits.toISOString()}, Total Credit: ${totalCredit}`);
-                await addDepositsMonthUseCase.execute({
+
+                const transactionExist = await getTransactionsMonthUseCase.execute({
                     cpf,
-                    date_deposits,
-                    valor_total_deposit: totalCredit
+                    date_transactions,
+                    type_transactions
+                });
+                console.log(transactionExist)
+                
+                if (transactionExist.transaction_month.id != '') {
+                    return reply.status(409).send({
+                        message: `Transação do tipo ${type_transactions} para CPF ${cpf} no mês ${monthYear} já existe.`,
+                    });
+                }
+
+                await addTransactionsMonthUseCase.execute({
+                    cpf,
+                    date_transactions,
+                    valor_total_transactions: totalCredit,
+                    type_transactions
                 });
             }
         }
 
         return reply.status(201).send({
-            message: "Depósitos mensais registrados com sucesso",
+            message: "Transações mensais registradas com sucesso.",
             monthlyCredits
         });
 
@@ -89,8 +95,6 @@ export async function createDepositsMonth(request: FastifyRequest, reply: Fastif
             return reply.status(409).send({ message: error.message });
         }
 
-        // Para erros não previstos, retorna um erro genérico
-        // console.error("Error:", error);
-        return reply.status(500).send({ message: "Ocorreu um erro ao processar os depósitos" });
+        return reply.status(500).send({ message: "Ocorreu um erro ao processar transações" });
     }
 }

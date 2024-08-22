@@ -3,8 +3,8 @@ import { registerUser } from "./user/register";
 import { authenticateUser } from "./user/authenticate";
 import { addPlayer } from "./player/add-player";
 import { verifyJwt } from "../middlewares/verify-jwt";
-import { createDepositsMonth } from "./deposits-month/create-deposits-month.";
-import { sumDepositsMonth } from "./deposits-month/sum-deposits-month";
+import { createTransactionsMonth } from "./transactions-month/create-transactions-month."
+import { sumTransactionsMonth } from "./transactions-month/sum-transactions-month";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -12,7 +12,7 @@ export async function appRoutes(app: FastifyInstance) {
 
     //precisa estar autenticado para acessar
     app.post('/add_player', { onRequest: [verifyJwt]}, addPlayer)
-    app.post('/add_deposits_month', { onRequest: [verifyJwt]}, createDepositsMonth)
-    app.post('/sum_deposits_month', { onRequest: [verifyJwt]}, sumDepositsMonth)
+    app.post('/add_transactions_month', { onRequest: [verifyJwt]}, createTransactionsMonth)
+    app.post('/sum_transactions_month', { onRequest: [verifyJwt]}, sumTransactionsMonth)
 
 }

@@ -18,6 +18,12 @@ enum Status {
   INACTIVE
 }
 
+enum Transactions {
+  DEPOSIT
+  WITHDRAWALS
+  SEM_TRANSACAO
+}
+
 enum Sectores {
   RISCO
   FINANCEIRO
@@ -42,17 +48,17 @@ model User {
 }
 
 model Player {
-  id                        String           @id @default(uuid())
-  id_platform               Int              @unique
+  id                        String               @id @default(uuid())
+  id_platform               Int                  @unique
   name                      String
-  cpf                       String?          @unique
+  cpf                       String?              @unique
   tell                      String
-  email                     String           @unique
+  email                     String               @unique
   date_created              DateTime
   date_birth                DateTime?
   platform_regitration_date DateTime?
   Wallet                    Wallet?
-  Deposits_month            Deposits_month[]
+  Transactions_month        Transactions_month[]
 
   @@map("players")
 }
@@ -70,13 +76,14 @@ model Wallet {
   player Player @relation(fields: [id_player], references: [id])
 }
 
-model Deposits_month {
-  id                  String    @id @default(uuid())
-  id_player           String    
-  cpf                 String    
-  date_deposits       DateTime?
-  valor_total_deposit Float
-  date_created        DateTime
+model Transactions_month {
+  id                       String       @id @default(uuid())
+  id_player                String
+  cpf                      String
+  date_transactions        DateTime?
+  type_transactions        Transactions
+  valor_total_transactions Float
+  date_created             DateTime
 
   player Player @relation(fields: [id_player], references: [id])
 }
