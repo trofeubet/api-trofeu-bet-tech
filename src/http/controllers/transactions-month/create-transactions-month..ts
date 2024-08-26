@@ -68,7 +68,7 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
                     date_transactions,
                     type_transactions
                 });
-                console.log(transactionExist)
+                //console.log(transactionExist)
                 
                 if (transactionExist.transaction_month.id != '') {
                     return reply.status(409).send({

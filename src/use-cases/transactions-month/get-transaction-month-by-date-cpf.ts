@@ -31,7 +31,6 @@ export class GetTransactionMonthUseCase {
             cpf,
             type_transactions
         );
-        console.log(getTransactionsMonthByCpfDate)
 
         if(!getTransactionsMonthByCpfDate) {
             return {
