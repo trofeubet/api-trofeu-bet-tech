@@ -5,6 +5,7 @@ import { addPlayer } from "./player/add-player";
 import { verifyJwt } from "../middlewares/verify-jwt";
 import { createTransactionsMonth } from "./transactions-month/create-transactions-month."
 import { sumTransactionsMonth } from "./transactions-month/sum-transactions-month";
+import { getUser } from "./user/profile";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -14,5 +15,8 @@ export async function appRoutes(app: FastifyInstance) {
     app.post('/add_player', { onRequest: [verifyJwt]}, addPlayer)
     app.post('/add_transactions_month', { onRequest: [verifyJwt]}, createTransactionsMonth)
     app.post('/sum_transactions_month', { onRequest: [verifyJwt]}, sumTransactionsMonth)
+
+    //user
+    app.get('/me', { onRequest: [verifyJwt] }, getUser);
 
 }

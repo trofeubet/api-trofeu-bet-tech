@@ -8,9 +8,10 @@ import fastifyCors from "@fastify/cors";  // Importa o plugin CORS
 export const app = fastify();
 
 app.register(fastifyCors, {
-    origin: 'http://localhost:3000', // Permite apenas essa origem
+    origin: 'http://localhost:5173', // Permite apenas essa origem
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Métodos permitidos
     allowedHeaders: ['Content-Type', 'Authorization'], // Cabeçalhos permitidos
+    credentials: true // Permite o envio de cookies
 });
 
 app.register(fastifyJwt, {
