@@ -11,12 +11,10 @@ export async function getUser(request: FastifyRequest, reply: FastifyReply) {
         const user = await getUserUseCase.execute({
             id: userId
         });
-        console.log(user);
 
         return reply.status(200).send(user);
 
     } catch (error) {
-        // Em caso de erro, envia uma resposta de erro
         return reply.status(500).send({ message: 'Internal server error' });
     }
 }

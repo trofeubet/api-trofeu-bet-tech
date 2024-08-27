@@ -6,6 +6,7 @@ import { verifyJwt } from "../middlewares/verify-jwt";
 import { createTransactionsMonth } from "./transactions-month/create-transactions-month."
 import { sumTransactionsMonth } from "./transactions-month/sum-transactions-month";
 import { getUser } from "./user/profile";
+import { updateUser } from "./user/update";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -18,5 +19,6 @@ export async function appRoutes(app: FastifyInstance) {
 
     //user
     app.get('/me', { onRequest: [verifyJwt] }, getUser);
+    app.put('/updateUser', { onRequest: [verifyJwt] }, updateUser);
 
 }
