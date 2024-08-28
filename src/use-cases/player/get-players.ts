@@ -17,6 +17,7 @@ interface getPlayersUseCaseResponse {
     playersList: Player[];
     totalItens: number;
     totalPages: number;
+    currentPage: number;
 }
 
 export class GetPlayersUseCase {
@@ -35,7 +36,8 @@ export class GetPlayersUseCase {
             return {
                 playersList: [],
                 totalItens: 0,
-                totalPages: 0
+                totalPages: 0,
+                currentPage: page
             };
         }
 
@@ -46,7 +48,8 @@ export class GetPlayersUseCase {
         return { 
             playersList: players,
             totalItens: totalCount,
-            totalPages
+            totalPages,
+            currentPage: page
         };
     }
 }

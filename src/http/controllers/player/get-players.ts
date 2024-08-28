@@ -38,7 +38,8 @@ export async function getPlayers(request: FastifyRequest, reply: FastifyReply) {
         return reply.status(200).send({
             totalItens,
             totalPages,
-            playersList
+            currentPage: page,
+            playersList,
         })
 
     } catch (error) {
