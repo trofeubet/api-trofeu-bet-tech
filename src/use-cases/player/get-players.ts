@@ -7,7 +7,7 @@ import { ErrorLoadingPage } from "../@errors/error-loading-page";
 interface getPlayersUseCaseRequest {
     page: number;
     name?: string;
-    id_jogador?: number;
+    id_platform?: number;
     tell?: string;
     email?: string;
     cpf?: string;
@@ -26,11 +26,13 @@ export class GetPlayersUseCase {
     ) {}
     
     async execute({
-        page, name, id_jogador, tell, email, cpf
+        page, name, id_platform, tell, email, cpf
     }: getPlayersUseCaseRequest): Promise<getPlayersUseCaseResponse> {
 
+        if (page <= 0) page = 1;
+
         const take = 10;
-        const { players, totalCount } = await this.playersRepository.getPlayers(take, page, name, id_jogador, tell, email, cpf);
+        const { players, totalCount } = await this.playersRepository.getPlayers(take, page, name, id_platform, tell, email, cpf);
 
         if (!players || players.length === 0) {
             return {

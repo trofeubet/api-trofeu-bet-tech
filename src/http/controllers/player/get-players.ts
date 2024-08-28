@@ -6,9 +6,9 @@ import { ErrorLoadingPage } from "@/use-cases/@errors/error-loading-page";
 
 export async function getPlayers(request: FastifyRequest, reply: FastifyReply) {
     const getPlayersBodySchema = z.object({
-        page: z.number().min(1, "Page must be a positive number").default(1),
+        page: z.number(),
         name: z.string().optional(),
-        id_jogador: z.number().optional(),
+        id_platform: z.number().optional(),
         tell: z.string().optional(),
         email: z.string().optional(),
         cpf: z.string().optional(),
@@ -17,7 +17,7 @@ export async function getPlayers(request: FastifyRequest, reply: FastifyReply) {
     const { 
         page,
         name,
-        id_jogador,
+        id_platform,
         tell,
         email,
         cpf
@@ -29,7 +29,7 @@ export async function getPlayers(request: FastifyRequest, reply: FastifyReply) {
         const { playersList, totalItens, totalPages } = await getPlayersUseCase.execute({
             page,
             name,
-            id_jogador,
+            id_platform,
             tell,
             email,
             cpf

@@ -38,7 +38,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         take: number, 
         page: number, 
         name?: string, 
-        id_jogador?: number, 
+        id_platform?: number, 
         tell?: string, 
         email?: string, 
         cpf?: string
@@ -58,7 +58,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         const conditions: Prisma.PlayerWhereInput[] = [];
     
         if (name) conditions.push({ name: { contains: name, mode: 'insensitive' } });
-        if (id_jogador) conditions.push({ id_platform: id_jogador });
+        if (id_platform) conditions.push({ id_platform });
         if (tell)  conditions.push({ tell: { contains: tell, mode: 'insensitive' } });    
         if (email)  conditions.push({ email: { contains: email, mode: 'insensitive' } });
         if (cpf) conditions.push({ cpf: { contains: cpf, mode: 'insensitive' } });
@@ -72,6 +72,9 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         const players = await prisma.player.findMany({
             where: whereClause,
+            orderBy: {
+                id_platform: 'asc'
+            },
             include: {
                 Transactions_month: true,
                 Wallet: true
