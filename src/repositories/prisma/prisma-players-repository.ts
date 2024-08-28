@@ -33,4 +33,59 @@ export class PrismaPlayersRepository implements PlayersRepository {
 
         return player
     }
+
+    async getPlayers(
+        take: number, 
+        page: number, 
+        name?: string, 
+        id_jogador?: number, 
+        tell?: string, 
+        email?: string, 
+        cpf?: string
+    ): Promise<{ 
+        players: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }>[], 
+        totalCount: number 
+    }> {
+    
+        const skip = (page - 1) * take;
+    
+        // Construindo as condições dinamicamente
+        const conditions: Prisma.PlayerWhereInput[] = [];
+    
+        if (name) conditions.push({ name: { contains: name, mode: 'insensitive' } });
+        if (id_jogador) conditions.push({ id_platform: id_jogador });
+        if (tell)  conditions.push({ tell: { contains: tell, mode: 'insensitive' } });    
+        if (email)  conditions.push({ email: { contains: email, mode: 'insensitive' } });
+        if (cpf) conditions.push({ cpf: { contains: cpf, mode: 'insensitive' } });
+        
+        // Garantindo que só passemos o AND se tivermos condições
+        const whereClause: Prisma.PlayerWhereInput = conditions.length > 0 ? { AND: conditions } : {};
+    
+        const totalCount = await prisma.player.count({
+            where: whereClause
+        });
+    
+        const players = await prisma.player.findMany({
+            where: whereClause,
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            },
+            take,
+            skip,
+        });
+    
+        return {
+            players,
+            totalCount
+        };
+    }
+    
+    
+    
 }
