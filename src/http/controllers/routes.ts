@@ -8,6 +8,7 @@ import { sumTransactionsMonth } from "./transactions-month/sum-transactions-mont
 import { getUser } from "./user/profile";
 import { updateUser } from "./user/update";
 import { getPlayers } from "./player/get-players";
+import { getUniquePlayer } from "./player/get-player-unique";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -24,5 +25,6 @@ export async function appRoutes(app: FastifyInstance) {
 
     //players
     app.post('/get_players', { onRequest: [verifyJwt] }, getPlayers);
+    app.get('/players/:id', { onRequest: [verifyJwt] }, getUniquePlayer);
 
 }

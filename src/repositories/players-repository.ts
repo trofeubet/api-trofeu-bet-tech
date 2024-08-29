@@ -10,4 +10,10 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[]; totalCount: number, }>
+    getUniquePlayer(id: string): Promise<{ player: Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }>} | null>
 }

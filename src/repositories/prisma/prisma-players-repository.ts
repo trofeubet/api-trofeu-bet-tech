@@ -88,7 +88,31 @@ export class PrismaPlayersRepository implements PlayersRepository {
             totalCount
         };
     }
-    
-    
-    
+
+    async getUniquePlayer(id: string): Promise<{ 
+        player: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }> 
+    } | null> {
+        const player = await prisma.player.findUnique({
+            where: {
+                id
+            },
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        })
+
+        if(!player) {
+            return null;
+        }
+
+        return {
+            player
+        }
+    }
 }
