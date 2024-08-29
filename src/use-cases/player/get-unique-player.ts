@@ -30,6 +30,7 @@ interface getPlayerUniqueUseCaseResponse {
             id: string;
             id_player: string;
             ftd_value: number;
+            ftd_date: Date | null;
             qtd_deposits: number;
             total_deposit_amount: number;
             total_withdrawals: number;
