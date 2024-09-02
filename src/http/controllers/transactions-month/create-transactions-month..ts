@@ -5,6 +5,8 @@ import { PlayerNotExistsError } from "@/use-cases/@errors/player-not-exists";
 import { DepositAlreadyExist } from "@/use-cases/@errors/deposit-already-exist";
 import { Transactions } from "@prisma/client";
 import { makeGetTransactionsMonthByCpfDateUseCase } from "@/use-cases/@factories/transactions-month/make-get-transaction-month-cpf-date-use-case";
+import { makeUpdateWalletUseCase } from "@/use-cases/@factories/wallet/make-update-wallet-use-case";
+import { makeGetWalletByCpfUseCase } from "@/use-cases/@factories/wallet/make-get-wallet-by-cpf-use-case";
 
 export async function createTransactionsMonth(request: FastifyRequest, reply: FastifyReply) {
     const addTransactionsMonthBodySchema = z.object({
@@ -19,8 +21,12 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
     const { type_transactions, rows } = addTransactionsMonthBodySchema.parse(request.body);
 
     try {
+        
+
         const addTransactionsMonthUseCase = makeAddTransactionsMonthUseCase();
         const getTransactionsMonthUseCase = makeGetTransactionsMonthByCpfDateUseCase();
+        const updateWallet = makeUpdateWalletUseCase();
+        const getWallet = makeGetWalletByCpfUseCase();
 
         // Objeto para armazenar os totais de cada mês por CPF
         const monthlyCredits: { [key: string]: { [cpf: string]: number } } = {};
@@ -68,7 +74,6 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
                     date_transactions,
                     type_transactions
                 });
-                //console.log(transactionExist)
                 
                 if (transactionExist.transaction_month.id != '') {
                     return reply.status(409).send({
@@ -84,9 +89,40 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
                 });
             }
         }
+        
+        const totalTransactions = rows.length;
+        const totalCredito = rows.reduce((sum, row) => sum + row.credito, 0);
+        //update wallet (adicionar quantidade de transações e o valor total de deposito ou saque)
+        if(type_transactions === 'DEPOSIT') {
+            const wallet = await getWallet.execute({
+                cpf: rows[0].cpf
+            })
+
+            await updateWallet.execute({
+                id: wallet.player.Wallet?.id ?? '',
+                qtd_deposits: totalTransactions,
+                total_deposit_amount: totalCredito
+            })
+        }
+
+        if(type_transactions === 'WITHDRAWALS') {
+            const wallet = await getWallet.execute({
+                cpf: rows[0].cpf
+            })
+
+            await updateWallet.execute({
+                id: wallet.player.Wallet?.id ?? '',
+                qtd_withdrawals: totalTransactions,
+                total_withdrawals: totalCredito
+            })
+        }
+
+
 
         return reply.status(201).send({
             message: "Transações mensais registradas com sucesso.",
+            totalTransactions: totalTransactions,
+            totalCredito: totalCredito,
             monthlyCredits
         });
 
