@@ -91,9 +91,6 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
         }
         
         const totalTransactions = rows.length;
-        if(rows.length === 0) {
-            totalTransactions = 0;
-        }
         const totalCredito = rows.reduce((sum, row) => sum + row.credito, 0);
         //update wallet (adicionar quantidade de transações e o valor total de deposito ou saque)
         if(type_transactions === 'DEPOSIT') {
