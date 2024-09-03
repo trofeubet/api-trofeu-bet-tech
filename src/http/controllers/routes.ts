@@ -10,6 +10,7 @@ import { updateUser } from "./user/update";
 import { getPlayers } from "./player/get-players";
 import { getUniquePlayer } from "./player/get-player-unique";
 import { chartWithdrawalDepositMonthByPlayer } from "./player/chart-withdrawal-deposit-month-by-player";
+import { getUsers } from "./user/get-users";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -29,4 +30,6 @@ export async function appRoutes(app: FastifyInstance) {
     app.get('/players/:id', { onRequest: [verifyJwt] }, getUniquePlayer);
     app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt] }, chartWithdrawalDepositMonthByPlayer);
 
+    //users
+    app.post('/get_users', { onRequest: [verifyJwt] }, getUsers);
 }

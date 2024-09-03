@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { Prisma, User } from '@prisma/client'
+import { Prisma, Sectores, User } from '@prisma/client'
 import { UsersRepository } from '../users-repository'
 
 export class PrismaUsersRepository implements UsersRepository {
@@ -40,5 +40,31 @@ export class PrismaUsersRepository implements UsersRepository {
         })
 
         return user
+    }
+
+    async getUsers(take: number, page: number, name?: string, email?: string): Promise<{ users: User[]; totalCount: number; }> {
+        const skip = (page - 1) * take;
+
+        const conditions: Prisma.UserWhereInput[] = [];
+
+        if (name) conditions.push({ name: { contains: name, mode: 'insensitive' } });
+        // if (sector) conditions.push({ sector: { equals: sector } });
+        if (email) conditions.push({ email: { contains: email, mode: 'insensitive' } });
+
+        const users = await prisma.user.findMany({
+            where: {
+                AND: conditions
+            },
+            take,
+            skip
+        });
+
+        const totalCount = await prisma.user.count({
+            where: {
+                AND: conditions
+            }
+        });
+
+        return { users, totalCount };
     }
 }
