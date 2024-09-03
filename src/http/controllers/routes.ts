@@ -5,12 +5,12 @@ import { addPlayer } from "./player/add-player";
 import { verifyJwt } from "../middlewares/verify-jwt";
 import { createTransactionsMonth } from "./transactions-month/create-transactions-month."
 import { sumTransactionsMonth } from "./transactions-month/sum-transactions-month";
-import { getUser } from "./user/profile";
 import { updateUser } from "./user/update";
 import { getPlayers } from "./player/get-players";
 import { getUniquePlayer } from "./player/get-player-unique";
 import { chartWithdrawalDepositMonthByPlayer } from "./player/chart-withdrawal-deposit-month-by-player";
 import { getUsers } from "./user/get-users";
+import { getProfile } from "./user/profile";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -22,7 +22,7 @@ export async function appRoutes(app: FastifyInstance) {
     app.post('/sum_transactions_month', { onRequest: [verifyJwt]}, sumTransactionsMonth)
 
     //user
-    app.get('/me', { onRequest: [verifyJwt] }, getUser);
+    app.get('/me', { onRequest: [verifyJwt] }, getProfile);
     app.put('/updateUser', { onRequest: [verifyJwt] }, updateUser);
 
     //players
