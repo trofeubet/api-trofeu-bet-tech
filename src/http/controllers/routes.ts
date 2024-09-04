@@ -11,6 +11,7 @@ import { getUniquePlayer } from "./player/get-player-unique";
 import { chartWithdrawalDepositMonthByPlayer } from "./player/chart-withdrawal-deposit-month-by-player";
 import { getUsers } from "./user/get-users";
 import { getProfile } from "./user/profile";
+import { getUniqueUser } from "./user/get-user-unique";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -24,6 +25,7 @@ export async function appRoutes(app: FastifyInstance) {
     //user
     app.get('/me', { onRequest: [verifyJwt] }, getProfile);
     app.put('/updateUser', { onRequest: [verifyJwt] }, updateUser);
+    app.get('/users/:id', { onRequest: [verifyJwt] }, getUniqueUser);
 
     //players
     app.post('/get_players', { onRequest: [verifyJwt] }, getPlayers);
