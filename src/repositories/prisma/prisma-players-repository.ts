@@ -115,4 +115,105 @@ export class PrismaPlayersRepository implements PlayersRepository {
             player
         }
     }
+
+    async getPlayersByPlatformRegistrationDate(date_init: Date, date_finish: Date): Promise<{ 
+        players: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true
+            }
+        }>[], 
+        totalCount: number,
+        depositCountsPerMonth: { [key: string]: number } // Adiciona esta linha para contar jogadores por mês
+    }> {
+    
+        const dataInicioCorrigida = new Date(date_init);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 0); 
+    
+        const dataFimCorrigida = new Date(date_finish);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
+    
+        // Obtém os jogadores
+        const players = await prisma.player.findMany({
+            where: {
+                platform_regitration_date: {
+                    gte: dataInicioCorrigida,
+                    lte: dataFimCorrigida
+                }
+            },
+            include: {
+                Transactions_month: true
+            }
+        });
+    
+        const totalCount = players.length;
+    
+        // Inicializa o mapa de contagem de jogadores por mês
+        const depositCountsPerMonth: { [key: string]: number } = {
+            "Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0,
+            "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0
+        };
+    
+        // Set para armazenar os jogadores únicos que têm depósitos em cada mês
+        const playersWithDeposits: Set<string> = new Set();
+    
+        // Processa os jogadores e suas transações
+        players.forEach(player => {
+            player.Transactions_month.forEach(transaction => {
+                if (transaction.type_transactions === 'DEPOSIT') {
+                    const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                    // Obtém o mês como número (1-12)
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
+    
+                    // Adiciona o jogador ao set de jogadores com depósitos
+                    playersWithDeposits.add(player.id);
+    
+                    // Incrementa a contagem de depósitos no mês correspondente
+                    if (depositCountsPerMonth[monthName] !== undefined) {
+                        depositCountsPerMonth[monthName]++;
+                    }
+                }
+            });
+        });
+    
+        // Conta o número de jogadores que têm depósitos em cada mês subsequente
+        const depositCountsPerMonthForPlayers: { [key: string]: number } = {
+            "Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0,
+            "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0
+        };
+    
+        players.forEach(player => {
+            if (playersWithDeposits.has(player.id)) {
+                player.Transactions_month.forEach(transaction => {
+                    if (transaction.type_transactions === 'DEPOSIT') {
+                        const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                        // Obtém o mês como número (1-12)
+                        const monthNumber = transactionDate.getUTCMonth() + 1;
+                        const monthNames = [
+                            "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
+                            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                        ];
+                        const monthName = monthNames[monthNumber - 1];
+    
+                        if (depositCountsPerMonthForPlayers[monthName] !== undefined) {
+                            depositCountsPerMonthForPlayers[monthName]++;
+                        }
+                    }
+                });
+            }
+        });
+    
+        return { 
+            players,
+            totalCount,
+            depositCountsPerMonth
+        };
+    }
+    
 }
