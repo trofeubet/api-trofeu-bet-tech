@@ -21,5 +21,5 @@ export interface PlayersRepository {
             Transactions_month: true,
             Wallet: true
         }
-    }>[], totalCount: number, depositCountsPerMonth: { [key: string]: number } }>
+    }>[], totalCount: number, depositCountsPerMonth: { [key: string]: { count: number, percentage: number } } }>
 }

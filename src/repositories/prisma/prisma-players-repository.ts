@@ -124,7 +124,9 @@ export class PrismaPlayersRepository implements PlayersRepository {
             }
         }>[], 
         totalCount: number,
-        depositCountsPerMonth: { [key: string]: number } // Adiciona esta linha para contar jogadores por mês
+        depositCountsPerMonth: { 
+            [key: string]: { count: number, percentage: number } // Inclui a porcentagem
+        }
     }> {
     
         const dataInicioCorrigida = new Date(date_init);
@@ -151,10 +153,20 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         const totalCount = players.length;
     
-        // Inicializa o mapa de contagem de jogadores por mês
-        const depositCountsPerMonth: { [key: string]: number } = {
-            "Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0,
-            "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0
+        // Inicializa o mapa de contagem de jogadores por mês, agora com valores de contagem e porcentagem
+        const depositCountsPerMonth: { [key: string]: { count: number, percentage: number } } = {
+            "Janeiro": { count: 0, percentage: 0 }, 
+            "Fevereiro": { count: 0, percentage: 0 }, 
+            "Março": { count: 0, percentage: 0 }, 
+            "Abril": { count: 0, percentage: 0 }, 
+            "Maio": { count: 0, percentage: 0 }, 
+            "Junho": { count: 0, percentage: 0 }, 
+            "Julho": { count: 0, percentage: 0 }, 
+            "Agosto": { count: 0, percentage: 0 }, 
+            "Setembro": { count: 0, percentage: 0 }, 
+            "Outubro": { count: 0, percentage: 0 }, 
+            "Novembro": { count: 0, percentage: 0 }, 
+            "Dezembro": { count: 0, percentage: 0 }
         };
     
         // Set para armazenar os jogadores únicos que têm depósitos em cada mês
@@ -178,39 +190,17 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     playersWithDeposits.add(player.id);
     
                     // Incrementa a contagem de depósitos no mês correspondente
-                    if (depositCountsPerMonth[monthName] !== undefined) {
-                        depositCountsPerMonth[monthName]++;
+                    if (depositCountsPerMonth[monthName]) {
+                        depositCountsPerMonth[monthName].count++;
                     }
                 }
             });
         });
     
-        // Conta o número de jogadores que têm depósitos em cada mês subsequente
-        const depositCountsPerMonthForPlayers: { [key: string]: number } = {
-            "Janeiro": 0, "Fevereiro": 0, "Marco": 0, "Abril": 0, "Maio": 0, "Junho": 0,
-            "Julho": 0, "Agosto": 0, "Setembro": 0, "Outubro": 0, "Novembro": 0, "Dezembro": 0
-        };
-    
-        players.forEach(player => {
-            if (playersWithDeposits.has(player.id)) {
-                player.Transactions_month.forEach(transaction => {
-                    if (transaction.type_transactions === 'DEPOSIT') {
-                        const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                        // Obtém o mês como número (1-12)
-                        const monthNumber = transactionDate.getUTCMonth() + 1;
-                        const monthNames = [
-                            "Janeiro", "Fevereiro", "Marco", "Abril", "Maio", "Junho",
-                            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                        ];
-                        const monthName = monthNames[monthNumber - 1];
-    
-                        if (depositCountsPerMonthForPlayers[monthName] !== undefined) {
-                            depositCountsPerMonthForPlayers[monthName]++;
-                        }
-                    }
-                });
-            }
+        // Calcula a porcentagem para cada mês
+        Object.keys(depositCountsPerMonth).forEach(month => {
+            const count = depositCountsPerMonth[month].count;
+            depositCountsPerMonth[month].percentage = totalCount > 0 ? (count / totalCount) * 100 : 0;
         });
     
         return { 
@@ -219,5 +209,4 @@ export class PrismaPlayersRepository implements PlayersRepository {
             depositCountsPerMonth
         };
     }
-    
 }

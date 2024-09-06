@@ -21,7 +21,7 @@ export async function getPlayersLTV(request: FastifyRequest, reply: FastifyReply
 
 
         return reply.status(200).send({
-            totalPlayers: totalCount,
+            totalCount,
             depositCountsPerMonth
         });
 

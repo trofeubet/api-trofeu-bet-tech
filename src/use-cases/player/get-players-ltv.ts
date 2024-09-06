@@ -7,26 +7,8 @@ interface getPlayersLtvUseCaseRequest {
 }
 
 interface getPlayersLtvUseCaseResponse {
-    // playersList: {
-    //     id: string;
-    //     name: string;
-    //     email: string;
-    //     cpf: string | null; // Permite null
-    //     tell: string;
-    //     id_platform: number;
-    //     date_created: Date;
-    //     Transactions_month: {
-    //         id: string;
-    //         id_player: string;
-    //         cpf: string | null; // Permite null
-    //         date_transactions: Date | null; // Permite null
-    //         type_transactions: string;
-    //         valor_total_transactions: number;
-    //         date_created: Date;
-    //     }[];
-    // }[];
     totalCount: number;
-    depositCountsPerMonth: { [key: string]: number };
+    depositCountsPerMonth: { [key: string]: { count: number, percentage: number } };
 }
 
 export class GetPlayersLtvUseCase {
