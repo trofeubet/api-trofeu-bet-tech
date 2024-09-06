@@ -41,7 +41,7 @@ export class GetPlayersLtvUseCase {
         const data_inicio = new Date(date_init);
         const data_fim = new Date(date_finish);
 
-        const { players, totalCount, depositCountsPerMonth } = await this.playersRepository.getPlayersByPlatformRegistrationDate(data_inicio, data_fim);
+        const { players, totalCount, depositCountsPerMonth } = await this.playersRepository.getPlayersByFtdDate(data_inicio, data_fim);
 
         if (!players || players.length === 0) {
             return {

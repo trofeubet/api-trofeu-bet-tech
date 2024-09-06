@@ -90,6 +90,15 @@ export async function sumTransactionsMonth(request: FastifyRequest, reply: Fasti
                     qtd_deposits: (getWalletByCpf.player.Wallet?.qtd_deposits ?? 0) + 1,
                     total_deposit_amount: (getWalletByCpf.player.Wallet?.total_deposit_amount ?? 0) + credito
                 })
+                const ftdDate = getWalletByCpf.player.Wallet?.ftd_date;
+                const referenceDate = new Date("1000-01-01T23:59:59.000Z");
+
+                if (ftdDate?.getTime() === referenceDate.getTime()) {
+                    await updateWalletUseCase.execute({
+                        id: getWalletByCpf.player.Wallet?.id ?? '',
+                        ftd_date: formattedDate
+                    });
+                }
             }
 
             if(type_transactions === "WITHDRAWALS") {

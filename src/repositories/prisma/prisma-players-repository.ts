@@ -116,10 +116,11 @@ export class PrismaPlayersRepository implements PlayersRepository {
         }
     }
 
-    async getPlayersByPlatformRegistrationDate(date_init: Date, date_finish: Date): Promise<{ 
+    async getPlayersByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
         players: Prisma.PlayerGetPayload<{
             include: {
-                Transactions_month: true
+                Transactions_month: true,
+                Wallet: true
             }
         }>[], 
         totalCount: number,
@@ -135,13 +136,16 @@ export class PrismaPlayersRepository implements PlayersRepository {
         // Obtém os jogadores
         const players = await prisma.player.findMany({
             where: {
-                platform_regitration_date: {
-                    gte: dataInicioCorrigida,
-                    lte: dataFimCorrigida
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
+                    }
                 }
             },
             include: {
-                Transactions_month: true
+                Transactions_month: true,
+                Wallet: true
             }
         });
     

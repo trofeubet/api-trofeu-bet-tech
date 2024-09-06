@@ -16,9 +16,10 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>} | null>
-    getPlayersByPlatformRegistrationDate(date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
+    getPlayersByFtdDate(date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
         include: {
             Transactions_month: true,
+            Wallet: true
         }
     }>[], totalCount: number, depositCountsPerMonth: { [key: string]: number } }>
 }
