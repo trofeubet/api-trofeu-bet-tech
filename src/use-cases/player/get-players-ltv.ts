@@ -21,9 +21,7 @@ export class GetPlayersLtvUseCase {
     }: getPlayersLtvUseCaseRequest): Promise<getPlayersLtvUseCaseResponse> {
 
         const data_inicio = new Date(date_init);
-        data_inicio.setUTCHours(0, 0, 0, 0);
         const data_fim = new Date(date_finish);
-        data_fim.setUTCHours(23, 59, 59, 999);
 
         const { players, totalCount, depositCountsPerMonth } = await this.playersRepository.getPlayersByFtdDate(data_inicio, data_fim);
 

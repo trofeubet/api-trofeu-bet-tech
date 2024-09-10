@@ -130,7 +130,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
     }> {
     
         const dataInicioCorrigida = new Date(date_init);
-        dataInicioCorrigida.setUTCHours(0, 0, 0, 0); 
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
         const dataFimCorrigida = new Date(date_finish);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
