@@ -12,7 +12,8 @@ import { chartWithdrawalDepositMonthByPlayer } from "./player/chart-withdrawal-d
 import { getUsers } from "./user/get-users";
 import { getProfile } from "./user/profile";
 import { getUniqueUser } from "./user/get-user-unique";
-import { getPlayersLTV } from "./player/players-LTV";
+import { getPlayersLTV } from "./player/chart-players-LTV";
+import { getDepositsLTV } from "./player/chart-full-amount-LTV";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -33,6 +34,8 @@ export async function appRoutes(app: FastifyInstance) {
     app.get('/players/:id', { onRequest: [verifyJwt] }, getUniquePlayer);
     app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt] }, chartWithdrawalDepositMonthByPlayer);
     app.post('/grafico_ltv', { onRequest: [verifyJwt] }, getPlayersLTV);
+    app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt] }, getDepositsLTV);
+
 
     //users
     app.post('/get_users', { onRequest: [verifyJwt] }, getUsers);

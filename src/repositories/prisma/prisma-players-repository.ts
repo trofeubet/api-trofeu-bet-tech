@@ -209,4 +209,94 @@ export class PrismaPlayersRepository implements PlayersRepository {
             depositCountsPerMonth
         };
     }
+
+    async getFullAmountByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
+        players: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }>[], 
+        totalAmount: number,
+        depositAmountPerMonth: { 
+            [key: string]: { amount: number, percentage: number } // Inclui a porcentagem
+        }
+    }> {
+        const dataInicioCorrigida = new Date(date_init);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
+    
+        const dataFimCorrigida = new Date(date_finish);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
+    
+        // Obtém os jogadores
+        const players = await prisma.player.findMany({
+            where: {
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
+                    }
+                }
+            },
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        });
+    
+        // Inicializa o total geral de depósitos
+        let totalAmount = 0;
+    
+        // Inicializa o mapa de somas de depósitos por mês, agora com valores de quantia e porcentagem
+        const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
+            "Janeiro": { amount: 0, percentage: 0 }, 
+            "Fevereiro": { amount: 0, percentage: 0 }, 
+            "Março": { amount: 0, percentage: 0 }, 
+            "Abril": { amount: 0, percentage: 0 }, 
+            "Maio": { amount: 0, percentage: 0 }, 
+            "Junho": { amount: 0, percentage: 0 }, 
+            "Julho": { amount: 0, percentage: 0 }, 
+            "Agosto": { amount: 0, percentage: 0 }, 
+            "Setembro": { amount: 0, percentage: 0 }, 
+            "Outubro": { amount: 0, percentage: 0 }, 
+            "Novembro": { amount: 0, percentage: 0 }, 
+            "Dezembro": { amount: 0, percentage: 0 }
+        };
+    
+        // Processa os jogadores e suas transações
+        players.forEach(player => {
+            player.Transactions_month.forEach(transaction => {
+                if (transaction.type_transactions === 'DEPOSIT') {
+                    const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                    // Obtém o mês como número (1-12)
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
+    
+                    // Soma o valor da transação ao mês correspondente
+                    const transactionAmount = transaction.valor_total_transactions ?? 0;
+                    depositAmountPerMonth[monthName].amount += transactionAmount;
+                    
+                    // Adiciona ao total geral
+                    totalAmount += transactionAmount;
+                }
+            });
+        });
+    
+        // Calcula a porcentagem para cada mês
+        Object.keys(depositAmountPerMonth).forEach(month => {
+            const amount = depositAmountPerMonth[month].amount;
+            depositAmountPerMonth[month].percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+        });
+    
+        return { 
+            players,
+            totalAmount,
+            depositAmountPerMonth
+        };
+    }
 }

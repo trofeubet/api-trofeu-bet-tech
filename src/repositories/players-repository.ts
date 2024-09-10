@@ -22,4 +22,10 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[], totalCount: number, depositCountsPerMonth: { [key: string]: { count: number, percentage: number } } }>
+    getFullAmountByFtdDate(date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }>[], totalAmount: number, depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } }>
 }
