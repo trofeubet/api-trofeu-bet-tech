@@ -306,12 +306,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
     }
 
     async calculateMonthlyAverageTicket(ano: string): Promise<{ 
-        players: Prisma.PlayerGetPayload<{
-            include: {
-                Transactions_month: true,
-                Wallet: true
-            }
-        }>[],
         averageTicket: { 
             [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
         }
@@ -387,6 +381,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
             averageTicket[month].average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
         });
     
-        return { players, averageTicket };
+        return { averageTicket };
     }
 }
