@@ -28,4 +28,10 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[], totalAmount: number, depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } }>
+    calculateMonthlyAverageTicket(ano: string): Promise<{ players: Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }>[], averageTicket: { [key: string]: { qtd_jogadores: number, totalAmount: number, average: number } } }>
 }

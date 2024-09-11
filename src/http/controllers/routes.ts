@@ -14,6 +14,7 @@ import { getProfile } from "./user/profile";
 import { getUniqueUser } from "./user/get-user-unique";
 import { getPlayersLTV } from "./player/chart-players-LTV";
 import { getDepositsLTV } from "./player/chart-full-amount-LTV";
+import { getTicketMedio } from "./player/get-ticket-medio";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -35,6 +36,7 @@ export async function appRoutes(app: FastifyInstance) {
     app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt] }, chartWithdrawalDepositMonthByPlayer);
     app.post('/grafico_ltv', { onRequest: [verifyJwt] }, getPlayersLTV);
     app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt] }, getDepositsLTV);
+    app.post('/grafico_ticket_medio', { onRequest: [verifyJwt] }, getTicketMedio)
 
 
     //users
