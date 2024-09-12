@@ -317,10 +317,9 @@ export class PrismaPlayersRepository implements PlayersRepository {
             throw new Error('Ano inválido. Deve ser um ano de quatro dígitos.');
         }
     
-        // Define o início e o fim do ano especificado
-        const startDate = new Date(Date.UTC(year, 0, 1, 0, 0, 0));  // 1º de janeiro
-        const endDate = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));  // 31 de dezembro
-    
+        // Lista de meses em ordem
+        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
+        
         // Inicializa o objeto para armazenar o ticket médio por mês
         const averageTicket: { 
             [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
@@ -377,8 +376,8 @@ export class PrismaPlayersRepository implements PlayersRepository {
             const qtd_jogadores = playerSet.size;
             const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
             
-            // Converte o número do mês para o nome do mês
-            const monthName = new Date(Date.UTC(year, month)).toLocaleString('default', { month: 'long' }).toLowerCase();
+            // Define o nome do mês usando o array `months` para garantir a ordem correta
+            const monthName = months[month];
             
             averageTicket[monthName] = {
                 qtd_jogadores,
@@ -389,6 +388,4 @@ export class PrismaPlayersRepository implements PlayersRepository {
         
         return { averageTicket };
     }
-    
-    
 }
