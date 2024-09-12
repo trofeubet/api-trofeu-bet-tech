@@ -326,7 +326,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         } = {};
     
         // Itera sobre cada mês do ano
-        for (let month = 0; month < 12; month++) {
+        for (let month = 0; month < 2; month++) {
             // Define o início e o fim do mês
             const monthStartDate = new Date(Date.UTC(year, month, 1, 0, 0, 0));
             const monthEndDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));  // Último dia do mês
