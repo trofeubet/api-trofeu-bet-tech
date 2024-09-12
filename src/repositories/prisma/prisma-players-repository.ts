@@ -130,9 +130,8 @@ export class PrismaPlayersRepository implements PlayersRepository {
         }
     }> {
     
-        // Corrige as datas para incluir o intervalo completo
         const dataInicioCorrigida = new Date(date_init);
-        dataInicioCorrigida.setUTCHours(0, 0, 0, 0);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
         const dataFimCorrigida = new Date(date_finish);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
@@ -155,19 +154,19 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         const totalCount = players.length;
     
-        // Inicializa o mapa de contagem de depósitos por mês
+        // Inicializa o mapa de contagem de jogadores por mês, agora com valores de contagem e porcentagem
         const depositCountsPerMonth: { [key: string]: { count: number, percentage: number } } = {
-            "Janeiro": { count: 0, percentage: 0 },
-            "Fevereiro": { count: 0, percentage: 0 },
-            "Março": { count: 0, percentage: 0 },
-            "Abril": { count: 0, percentage: 0 },
-            "Maio": { count: 0, percentage: 0 },
-            "Junho": { count: 0, percentage: 0 },
-            "Julho": { count: 0, percentage: 0 },
-            "Agosto": { count: 0, percentage: 0 },
-            "Setembro": { count: 0, percentage: 0 },
-            "Outubro": { count: 0, percentage: 0 },
-            "Novembro": { count: 0, percentage: 0 },
+            "Janeiro": { count: 0, percentage: 0 }, 
+            "Fevereiro": { count: 0, percentage: 0 }, 
+            "Março": { count: 0, percentage: 0 }, 
+            "Abril": { count: 0, percentage: 0 }, 
+            "Maio": { count: 0, percentage: 0 }, 
+            "Junho": { count: 0, percentage: 0 }, 
+            "Julho": { count: 0, percentage: 0 }, 
+            "Agosto": { count: 0, percentage: 0 }, 
+            "Setembro": { count: 0, percentage: 0 }, 
+            "Outubro": { count: 0, percentage: 0 }, 
+            "Novembro": { count: 0, percentage: 0 }, 
             "Dezembro": { count: 0, percentage: 0 }
         };
     
@@ -180,23 +179,20 @@ export class PrismaPlayersRepository implements PlayersRepository {
                 if (transaction.type_transactions === 'DEPOSIT') {
                     const transactionDate = new Date(transaction.date_transactions ?? '');
     
-                    // Verifica se a transação está dentro do intervalo
-                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                        // Obtém o mês como número (1-12)
-                        const monthNumber = transactionDate.getUTCMonth() + 1;
-                        const monthNames = [
-                            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                        ];
-                        const monthName = monthNames[monthNumber - 1];
+                    // Obtém o mês como número (1-12)
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
     
-                        // Adiciona o jogador ao set de jogadores com depósitos
-                        playersWithDeposits.add(player.id);
+                    // Adiciona o jogador ao set de jogadores com depósitos
+                    playersWithDeposits.add(player.id);
     
-                        // Incrementa a contagem de depósitos no mês correspondente
-                        if (depositCountsPerMonth[monthName]) {
-                            depositCountsPerMonth[monthName].count++;
-                        }
+                    // Incrementa a contagem de depósitos no mês correspondente
+                    if (depositCountsPerMonth[monthName]) {
+                        depositCountsPerMonth[monthName].count++;
                     }
                 }
             });
@@ -214,7 +210,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
             depositCountsPerMonth
         };
     }
-    
 
     async getFullAmountByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
         players: Prisma.PlayerGetPayload<{
