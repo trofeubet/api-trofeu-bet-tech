@@ -333,8 +333,8 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
             console.log(`Consultando transações para o mês ${months[month]}: ${monthStartDate.toISOString()} a ${monthEndDate.toISOString()}`);
     
-            // Filtra os jogadores que fizeram o primeiro depósito (ftd_date) entre o início e o fim do mês
-            const jogadoresNoMes = await prisma.player.findMany({
+            // Primeiro, obtenha a lista de jogadores com FTD no mês atual
+            const jogadoresComFTD = await prisma.player.findMany({
                 where: {
                     Wallet: {
                         ftd_date: {
@@ -344,58 +344,60 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     }
                 },
                 select: {
-                    id: true  // Seleciona apenas os IDs dos jogadores
+                    id: true
                 }
             });
     
-            // Extrai os IDs dos jogadores
-            const jogadorIds = jogadoresNoMes.map(jogador => jogador.id);
+            const jogadorIds = jogadoresComFTD.map(player => player.id);
     
-            // Se não houver jogadores no mês, pula a iteração
-            if (jogadorIds.length === 0) {
-                averageTicket[months[month]] = { qtd_jogadores: 0, totalAmount: 0, average: 0 };
-                continue;
-            }
-    
-            // Usa a agregação do Prisma para somar os depósitos apenas dos jogadores filtrados por ftd_date
-            const result = await prisma.transactions_month.aggregate({
-                _sum: {
-                    valor_total_transactions: true
-                },
-                _count: {
-                    id_player: true 
-                },
-                where: {
-                    type_transactions: 'DEPOSIT',
-                    date_transactions: {
-                        gte: monthStartDate,
-                        lte: monthEndDate
+            // Verifique se há jogadores no mês
+            if (jogadorIds.length > 0) {
+                // Agora somamos todos os depósitos dos jogadores com FTD no mês
+                const result = await prisma.transactions_month.aggregate({
+                    _sum: {
+                        valor_total_transactions: true
                     },
-                    id_player: {
-                        in: jogadorIds  // Somente os jogadores que têm ftd_date no mês
-                    }
-                }
-            });
+                    _count: {
+                        id_player: true
+                    },
+                    where: {
+                        type_transactions: 'DEPOSIT',
+                        date_transactions: {
+                            gte: monthStartDate,
+                            lte: monthEndDate
+                        },
+                        id_player: {
+                            in: jogadorIds
+                        }
+                    },
+                });
     
-            console.log(`Resultado do mês ${months[month]}: ${JSON.stringify(result)}`);
+                console.log(`Resultado do mês ${months[month]}: ${JSON.stringify(result)}`);
     
-            // Extrai os resultados da agregação
-            const totalAmount = result._sum.valor_total_transactions ?? 0;
-            const qtd_jogadores = result._count.id_player ?? 0;
-            const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
+                // Extrai os resultados da agregação
+                const totalAmount = result._sum.valor_total_transactions ?? 0;
+                const qtd_jogadores = result._count.id_player ?? 0;
+                const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
     
-            // Define o nome do mês usando o array `months` para garantir a ordem correta
-            const monthName = months[month];
+                // Define o nome do mês usando o array `months` para garantir a ordem correta
+                const monthName = months[month];
     
-            averageTicket[monthName] = {
-                qtd_jogadores,
-                totalAmount,
-                average
-            };
+                averageTicket[monthName] = {
+                    qtd_jogadores,
+                    totalAmount,
+                    average
+                };
+            } else {
+                // Se não houver jogadores com FTD no mês, defina os valores como zero
+                averageTicket[months[month]] = {
+                    qtd_jogadores: 0,
+                    totalAmount: 0,
+                    average: 0
+                };
+            }
         }
     
         return { averageTicket };
     }
-    
     
 }
