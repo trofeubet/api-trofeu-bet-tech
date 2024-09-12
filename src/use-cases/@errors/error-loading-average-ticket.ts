@@ -1,5 +1,5 @@
 export class ErrorLoadingAverageTicket extends Error {
-    constructor(){
+    constructor(a: string){
         super('Erro loading average ticket')
     }
 }
