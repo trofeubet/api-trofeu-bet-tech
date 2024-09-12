@@ -306,68 +306,84 @@ export class PrismaPlayersRepository implements PlayersRepository {
         };
     }
 
-    async calculateMonthlyAverageTicket(ano: string): Promise<{ 
-        averageTicket: { 
-            [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
-        }
-    }> {
-        // Verifica se o ano é um número válido e tem quatro dígitos
-        const year = parseInt(ano, 10);
-        if (isNaN(year) || ano.length !== 4) {
-            throw new Error('Ano inválido. Deve ser um ano de quatro dígitos.');
-        }
+    async getQtdPlayersMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number> {
+        const dataInicioCorrigida = new Date(date_init);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
-        // Lista de meses em ordem
-        const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
-        
-        // Inicializa o objeto para armazenar o ticket médio por mês
-        const averageTicket: { 
-            [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
-        } = {};
+        const dataFimCorrigida = new Date(date_finish);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
     
-        // Itera sobre cada mês do ano
-        for (let month = 0; month < 12; month++) {
-            // Define o início e o fim do mês
-            const monthStartDate = new Date(Date.UTC(year, month, 1, 0, 0, 0));
-            const monthEndDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));  // Último dia do mês
-    
-            console.log(`Consultando transações para o mês ${months[month]}: ${monthStartDate.toISOString()} a ${monthEndDate.toISOString()}`);
-    
-            // Usa a agregação do Prisma para contar jogadores únicos e somar os depósitos
-            const result = await prisma.transactions_month.aggregate({
-                _sum: {
-                    valor_total_transactions: true
-                },
-                _count: {
-                    id_player: true 
-                },
-                where: {
-                    type_transactions: 'DEPOSIT',
-                    date_transactions: {
-                        gte: monthStartDate,
-                        lte: monthEndDate
+        // Filtra os jogadores pelo ftd_date no intervalo especificado
+        const players = await prisma.player.findMany({
+            where: {
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
+                    }
+                }
+            },
+            include: {
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT' 
                     }
                 },
-            });
+                Wallet: true
+            }
+        });
     
-            console.log(`Resultado do mês ${months[month]}: ${JSON.stringify(result)}`);
+        // Inicializa o total de jogadores no intervalo de FTD
+        const totalPlayersMonth = players.length;
     
-            // Extrai os resultados da agregação
-            const totalAmount = result._sum.valor_total_transactions ?? 0;
-            const qtd_jogadores = result._count.id_player ?? 0;
-            const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
-            
-            // Define o nome do mês usando o array `months` para garantir a ordem correta
-            const monthName = months[month];
-            
-            averageTicket[monthName] = {
-                qtd_jogadores,
-                totalAmount,
-                average
-            };
-        }
-        
-        return { averageTicket };
+        return totalPlayersMonth
     }
+
+    async getTotalAmountMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number> {
+        const dataInicioCorrigida = new Date(date_init);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
+        const dataFimCorrigida = new Date(date_finish);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
+    
+        // Filtra os jogadores pelo ftd_date no intervalo especificado
+        const players = await prisma.player.findMany({
+            where: {
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
+                    }
+                }
+            },
+            include: {
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT' 
+                    }
+                },
+                Wallet: true
+            }
+        });
+    
+        // Inicializa o total de depósitos no intervalo de FTD
+        let totalAmountMonth = 0;
+    
+        // Processa os jogadores filtrados e suas transações
+        players.forEach(player => {
+            player.Transactions_month.forEach(transaction => {
+                const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                // Filtra os depósitos realizados dentro do intervalo FTD
+                if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
+                    const transactionAmount = transaction.valor_total_transactions ?? 0;
+                    totalAmountMonth += transactionAmount; // Soma no totalAmount
+                }
+            });
+        });
+    
+        return totalAmountMonth
+        
+    }
+
 }
