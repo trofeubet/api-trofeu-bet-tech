@@ -33,7 +33,7 @@ export class GetTicketMedioUseCase {
         } = {};
 
         // Itera sobre cada mês do ano
-        for (let i = 0; i < 3; i++) {
+        for (let i = 3; i < 4; i++) {
             // Define o início e o fim do mês
             const date_init = new Date(year, i, 1);
             const date_finish = new Date(year, i + 1, 0);  // Último dia do mês
