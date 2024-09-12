@@ -1,4 +1,5 @@
 import { PlayersRepository } from "@/repositories/players-repository";
+import { AnoInvalido } from "../@errors/error-ano-invalido";
 
 interface GetTicketMedioUseCaseRequest {
     ano: string;
@@ -16,6 +17,11 @@ export class GetTicketMedioUseCase {
     async execute({
         ano
     }: GetTicketMedioUseCaseRequest): Promise<GetTicketMedioUseCaseResponse> {
+
+        const year = parseInt(ano);
+        if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
+            throw new AnoInvalido();
+        }
         
         const { averageTicket } = await this.playersRepository.calculateMonthlyAverageTicket(ano);
  

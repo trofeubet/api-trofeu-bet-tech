@@ -310,49 +310,50 @@ export class PrismaPlayersRepository implements PlayersRepository {
             [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
         }
     }> {
-        // Valida o parâmetro do ano
-        const year = parseInt(ano);
-        if (isNaN(year) || year < 1900 || year > new Date().getFullYear()) {
-            throw new AnoInvalido();
-        }
+        // Define as datas de início e fim do ano
+        const startDate = new Date(`${ano}-01-01T00:00:00Z`);
+        const endDate = new Date(`${ano}-12-31T23:59:59.999Z`);
     
-        // Calcula o início e o fim do ano especificado
-        const startDate = new Date(`${year}-01-01T00:00:00Z`);
-        const endDate = new Date(`${year + 1}-01-01T00:00:00Z`);
-    
-        // Busca todos os jogadores e inclui suas transações e carteira, filtrando por ano
+        // Busca todos os jogadores e suas transações de depósito para o ano especificado
         const players = await prisma.player.findMany({
             where: {
                 Wallet: {
                     ftd_date: {
                         gte: startDate,
-                        lt: endDate
+                        lte: endDate
+                    }
+                },
+                Transactions_month: {
+                    some: {
+                        type_transactions: 'DEPOSIT'
                     }
                 }
             },
             include: {
-                Transactions_month: true,
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT'
+                    }
+                },
                 Wallet: true
             }
         });
     
-        // Objeto para armazenar os dados de ticket médio por mês
+        // Inicializa o objeto para armazenar o ticket médio por mês
         const averageTicket: { 
             [key: string]: { qtd_jogadores: number, totalAmount: number, average: number }
         } = {};
     
-        // Itera sobre os jogadores e agrupa por ftd_date (mês do primeiro depósito)
+        // Itera sobre os jogadores e agrupa os dados por mês do primeiro depósito
         players.forEach(player => {
-            // Verifica se Wallet e ftd_date são válidos
             const ftdDate = player.Wallet?.ftd_date;
-            if (!ftdDate) return; // Pule jogadores sem data de primeiro depósito
+            if (!ftdDate) return;
     
+            // Obtém o mês e o ano do primeiro depósito (ftd_date)
             const date = new Date(ftdDate);
-            if (date.getFullYear() !== year) return; // Pule jogadores cujo ftd_date não é do ano especificado
-    
             const ftdMonth = date.toLocaleString('default', { month: 'long', year: 'numeric' });
     
-            // Se o mês não existir no objeto, inicializa
+            // Se o mês ainda não foi inicializado no objeto, faz isso agora
             if (!averageTicket[ftdMonth]) {
                 averageTicket[ftdMonth] = {
                     qtd_jogadores: 0,
@@ -361,23 +362,18 @@ export class PrismaPlayersRepository implements PlayersRepository {
                 };
             }
     
-            // Incrementa a quantidade de jogadores nesse mês
+            // Incrementa a quantidade de jogadores no mês
             averageTicket[ftdMonth].qtd_jogadores += 1;
     
-            // Soma o total de transações do jogador para o mês específico
+            // Soma o total das transações de depósito para esse jogador
             player.Transactions_month.forEach(transaction => {
-                if (transaction.type_transactions === 'DEPOSIT') {
-                    averageTicket[ftdMonth].totalAmount += transaction.valor_total_transactions;
-                }
+                averageTicket[ftdMonth].totalAmount += transaction.valor_total_transactions;
             });
         });
     
-        // Calcula o ticket médio para cada mês (totalAmount / qtd_jogadores)
+        // Calcula o ticket médio (totalAmount / qtd_jogadores) para cada mês
         Object.keys(averageTicket).forEach(month => {
-            const totalAmount = averageTicket[month].totalAmount;
-            const qtd_jogadores = averageTicket[month].qtd_jogadores;
-    
-            // Calcula o ticket médio do mês
+            const { totalAmount, qtd_jogadores } = averageTicket[month];
             averageTicket[month].average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
         });
     
