@@ -144,10 +144,19 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         gte: dataInicioCorrigida,
                         lte: dataFimCorrigida
                     }
+                },
+                Transactions_month: {
+                    some: {
+                        type_transactions: 'DEPOSIT'
+                    }
                 }
             },
             include: {
-                Transactions_month: true,
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT'
+                    }
+                },
                 Wallet: true
             }
         });
@@ -176,24 +185,22 @@ export class PrismaPlayersRepository implements PlayersRepository {
         // Processa os jogadores e suas transações
         players.forEach(player => {
             player.Transactions_month.forEach(transaction => {
-                if (transaction.type_transactions === 'DEPOSIT') {
-                    const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                    // Obtém o mês como número (1-12)
-                    const monthNumber = transactionDate.getUTCMonth() + 1;
-                    const monthNames = [
-                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                    ];
-                    const monthName = monthNames[monthNumber - 1];
-    
-                    // Adiciona o jogador ao set de jogadores com depósitos
-                    playersWithDeposits.add(player.id);
-    
-                    // Incrementa a contagem de depósitos no mês correspondente
-                    if (depositCountsPerMonth[monthName]) {
-                        depositCountsPerMonth[monthName].count++;
-                    }
+                const transactionDate = new Date(transaction.date_transactions ?? '');
+
+                // Obtém o mês como número (1-12)
+                const monthNumber = transactionDate.getUTCMonth() + 1;
+                const monthNames = [
+                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ];
+                const monthName = monthNames[monthNumber - 1];
+
+                // Adiciona o jogador ao set de jogadores com depósitos
+                playersWithDeposits.add(player.id);
+
+                // Incrementa a contagem de depósitos no mês correspondente
+                if (depositCountsPerMonth[monthName]) {
+                    depositCountsPerMonth[monthName].count++;
                 }
             });
         });
@@ -237,10 +244,19 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         gte: dataInicioCorrigida,
                         lte: dataFimCorrigida
                     }
+                },
+                Transactions_month: {
+                    some: {
+                        type_transactions: 'DEPOSIT' 
+                    }
                 }
             },
             include: {
-                Transactions_month: true,
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT' 
+                    }
+                },
                 Wallet: true
             }
         });
@@ -268,27 +284,25 @@ export class PrismaPlayersRepository implements PlayersRepository {
         players.forEach(player => {
             // Verifica transações dentro do intervalo de FTD para somar no totalAmount
             player.Transactions_month.forEach(transaction => {
-                if (transaction.type_transactions === 'DEPOSIT') {
-                    const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                    // Filtra os depósitos realizados dentro do intervalo FTD
-                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                        const transactionAmount = transaction.valor_total_transactions ?? 0;
-                        totalAmount += transactionAmount; // Soma no totalAmount
-                    }
-    
-                    // Para os depósitos após o FTD, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth() + 1;
-                    const monthNames = [
-                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                    ];
-                    const monthName = monthNames[monthNumber - 1];
-    
-                    // Soma o valor da transação ao mês correspondente
+                const transactionDate = new Date(transaction.date_transactions ?? '');
+                // Filtra os depósitos realizados dentro do intervalo FTD
+                if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
                     const transactionAmount = transaction.valor_total_transactions ?? 0;
-                    depositAmountPerMonth[monthName].amount += transactionAmount;
+                    totalAmount += transactionAmount; // Soma no totalAmount
                 }
+
+                // Para os depósitos após o FTD, adiciona no mapa de meses
+                const monthNumber = transactionDate.getUTCMonth() + 1;
+                const monthNames = [
+                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ];
+                const monthName = monthNames[monthNumber - 1];
+
+                // Soma o valor da transação ao mês correspondente
+                const transactionAmount = transaction.valor_total_transactions ?? 0;
+                depositAmountPerMonth[monthName].amount += transactionAmount;
+                
             });
         });
     
