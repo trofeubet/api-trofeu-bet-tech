@@ -311,8 +311,8 @@ export class PrismaPlayersRepository implements PlayersRepository {
         }
     }> {
         // Define as datas de início e fim do ano
-        const startDate = new Date(`${ano}-01-01T00:00:00Z`);
-        const endDate = new Date(`${ano}-03-31T23:59:59.999Z`);
+        const startDate = new Date(`${ano}-05-01T00:00:00Z`);
+        const endDate = new Date(`${ano}-05-31T23:59:59.999Z`);
     
         // Busca todos os jogadores e suas transações de depósito para o ano especificado
         const players = await prisma.player.findMany({
