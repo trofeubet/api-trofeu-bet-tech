@@ -3,6 +3,7 @@ import { z } from "zod";
 import { makeGetTicketMedioUseCase } from "@/use-cases/@factories/player/make-ticket-medio-use-case"
 import { ErrorLoadingPage } from "@/use-cases/@errors/error-loading-page";
 import { AnoInvalido } from "@/use-cases/@errors/error-ano-invalido";
+import { ErrorLoadingAverageTicket } from "@/use-cases/@errors/error-loading-average-ticket";
 
 export async function getTicketMedio(request: FastifyRequest, reply: FastifyReply) {
     const getTicketMedioBodySchema = z.object({
@@ -27,7 +28,7 @@ export async function getTicketMedio(request: FastifyRequest, reply: FastifyRepl
     } catch (error) {
         if(
             error instanceof AnoInvalido ||
-            error instanceof ErrorLoadingPage)
+            error instanceof ErrorLoadingAverageTicket)
         {
             return reply.status(409).send({message: error.message})
         }

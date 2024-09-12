@@ -1,5 +1,6 @@
 import { PlayersRepository } from "@/repositories/players-repository";
 import { AnoInvalido } from "../@errors/error-ano-invalido";
+import { ErrorLoadingAverageTicket } from "../@errors/error-loading-average-ticket";
 
 interface GetTicketMedioUseCaseRequest {
     ano: string;
@@ -24,6 +25,8 @@ export class GetTicketMedioUseCase {
         }
         
         const { averageTicket } = await this.playersRepository.calculateMonthlyAverageTicket(ano);
+
+        if(!averageTicket) throw new ErrorLoadingAverageTicket();
  
         return { 
             averageTicket
