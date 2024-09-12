@@ -228,8 +228,10 @@ export class PrismaPlayersRepository implements PlayersRepository {
             [key: string]: { amount: number, percentage: number } // Inclui a porcentagem
         }
     }> {
+    
+        // Corrige as datas para incluir o intervalo completo
         const dataInicioCorrigida = new Date(date_init);
-        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 0); 
     
         const dataFimCorrigida = new Date(date_finish);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
@@ -255,17 +257,17 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         // Inicializa o mapa de somas de depósitos por mês
         const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
-            "Janeiro": { amount: 0, percentage: 0 }, 
-            "Fevereiro": { amount: 0, percentage: 0 }, 
-            "Março": { amount: 0, percentage: 0 }, 
-            "Abril": { amount: 0, percentage: 0 }, 
-            "Maio": { amount: 0, percentage: 0 }, 
-            "Junho": { amount: 0, percentage: 0 }, 
-            "Julho": { amount: 0, percentage: 0 }, 
-            "Agosto": { amount: 0, percentage: 0 }, 
-            "Setembro": { amount: 0, percentage: 0 }, 
-            "Outubro": { amount: 0, percentage: 0 }, 
-            "Novembro": { amount: 0, percentage: 0 }, 
+            "Janeiro": { amount: 0, percentage: 0 },
+            "Fevereiro": { amount: 0, percentage: 0 },
+            "Março": { amount: 0, percentage: 0 },
+            "Abril": { amount: 0, percentage: 0 },
+            "Maio": { amount: 0, percentage: 0 },
+            "Junho": { amount: 0, percentage: 0 },
+            "Julho": { amount: 0, percentage: 0 },
+            "Agosto": { amount: 0, percentage: 0 },
+            "Setembro": { amount: 0, percentage: 0 },
+            "Outubro": { amount: 0, percentage: 0 },
+            "Novembro": { amount: 0, percentage: 0 },
             "Dezembro": { amount: 0, percentage: 0 }
         };
     
@@ -280,19 +282,19 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
                         const transactionAmount = transaction.valor_total_transactions ?? 0;
                         totalAmount += transactionAmount; // Soma no totalAmount
+    
+                        // Adiciona o valor da transação ao mês correspondente
+                        const monthNumber = transactionDate.getUTCMonth() + 1;
+                        const monthNames = [
+                            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                        ];
+                        const monthName = monthNames[monthNumber - 1];
+        
+                        if (depositAmountPerMonth[monthName]) {
+                            depositAmountPerMonth[monthName].amount += transactionAmount;
+                        }
                     }
-    
-                    // Para os depósitos após o FTD, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth() + 1;
-                    const monthNames = [
-                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                    ];
-                    const monthName = monthNames[monthNumber - 1];
-    
-                    // Soma o valor da transação ao mês correspondente
-                    const transactionAmount = transaction.valor_total_transactions ?? 0;
-                    depositAmountPerMonth[monthName].amount += transactionAmount;
                 }
             });
         });
@@ -309,6 +311,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
             depositAmountPerMonth
         };
     }
+    
 
     async calculateMonthlyAverageTicket(ano: string): Promise<{ 
         averageTicket: { 
