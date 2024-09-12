@@ -326,54 +326,35 @@ export class PrismaPlayersRepository implements PlayersRepository {
         } = {};
     
         // Itera sobre cada mês do ano
-        for (let month = 0; month < 4; month++) {
+        for (let month = 0; month < 12; month++) {
             // Define o início e o fim do mês
             const monthStartDate = new Date(Date.UTC(year, month, 1, 0, 0, 0));
             const monthEndDate = new Date(Date.UTC(year, month + 1, 0, 23, 59, 59, 999));  // Último dia do mês
     
-            console.log(`Consultando transações para o mês ${month + 1}: ${monthStartDate.toISOString()} a ${monthEndDate.toISOString()}`);
+            console.log(`Consultando transações para o mês ${months[month]}: ${monthStartDate.toISOString()} a ${monthEndDate.toISOString()}`);
     
-            // Busca jogadores e suas transações para o mês especificado
-            const players = await prisma.player.findMany({
+            // Usa a agregação do Prisma para contar jogadores únicos e somar os depósitos
+            const result = await prisma.transactions_month.aggregate({
+                _sum: {
+                    valor_total_transactions: true
+                },
+                _count: {
+                    id_player: true 
+                },
                 where: {
-                    Wallet: {
-                        ftd_date: {
-                            gte: monthStartDate,
-                            lte: monthEndDate
-                        }
+                    type_transactions: 'DEPOSIT',
+                    date_transactions: {
+                        gte: monthStartDate,
+                        lte: monthEndDate
                     }
                 },
-                include: {
-                    Transactions_month: {
-                        where: {
-                            type_transactions: 'DEPOSIT',
-                            date_transactions: {
-                                gte: monthStartDate,
-                                lte: monthEndDate
-                            }
-                        }
-                    },
-                    Wallet: true
-                }
             });
     
-            console.log(`Jogadores encontrados: ${players.length}`);
+            console.log(`Resultado do mês ${months[month]}: ${JSON.stringify(result)}`);
     
-            // Inicializa as variáveis para o mês atual
-            let totalAmount = 0;
-            let playerSet = new Set<string>();
-            
-            // Processa os jogadores e suas transações
-            players.forEach(player => {
-                player.Transactions_month.forEach(transaction => {
-                    if (transaction.type_transactions === 'DEPOSIT') {
-                        totalAmount += transaction.valor_total_transactions ?? 0;
-                    }
-                });
-                playerSet.add(player.id);
-            });
-    
-            const qtd_jogadores = playerSet.size;
+            // Extrai os resultados da agregação
+            const totalAmount = result._sum.valor_total_transactions ?? 0;
+            const qtd_jogadores = result._count.id_player ?? 0;
             const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
             
             // Define o nome do mês usando o array `months` para garantir a ordem correta
@@ -388,4 +369,5 @@ export class PrismaPlayersRepository implements PlayersRepository {
         
         return { averageTicket };
     }
+    
 }

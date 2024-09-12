@@ -1,7 +1,6 @@
 import { FastifyReply, FastifyRequest } from "fastify";
 import { z } from "zod";
 import { makeGetTicketMedioUseCase } from "@/use-cases/@factories/player/make-ticket-medio-use-case"
-import { ErrorLoadingPage } from "@/use-cases/@errors/error-loading-page";
 import { AnoInvalido } from "@/use-cases/@errors/error-ano-invalido";
 import { ErrorLoadingAverageTicket } from "@/use-cases/@errors/error-loading-average-ticket";
 
