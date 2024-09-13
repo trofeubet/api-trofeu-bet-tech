@@ -340,7 +340,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         let totalAmountMonth = 0;
         let skip = 0;
-        const take = 3000; // Tamanho da página
+        const take = 10000; // Tamanho da página
         let hasMorePlayers = true;
     
         while (hasMorePlayers) {
