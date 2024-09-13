@@ -7,7 +7,14 @@ interface GetTicketMedioUseCaseRequest {
 }
 
 interface GetTicketMedioUseCaseResponse {
-    averageTicket: { [key: string]: { qtd_jogadores: number, totalAmount: number, average: number } };
+    averageTicket: { 
+        [key: string]: { 
+            qtd_jogadores: number, 
+            totalAmount: number, 
+            average: number,
+            twentyPercentAverage: number // Novo campo para armazenar 20% da média
+        } 
+    };
 }
 
 export class GetTicketMedioUseCase {
@@ -56,13 +63,15 @@ export class GetTicketMedioUseCase {
                     }
 
                     const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
+                    const twentyPercentAverage = average * 0.2; // Cálculo de 20% da média
 
                     return {
                         month,
                         result: {
                             qtd_jogadores,
                             totalAmount,
-                            average
+                            average,
+                            twentyPercentAverage // Adiciona 20% da média ao resultado
                         }
                     };
                 } catch (error) {

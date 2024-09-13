@@ -338,7 +338,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         const dataFimCorrigida = new Date(date_finish);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
     
-        let totalAmountMonth = 0;
+        let totalAmount = 0;
         let skip = 0;
         const take = 30000; // Tamanho da página
         let hasMorePlayers = true;
@@ -361,8 +361,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
                             type_transactions: 'DEPOSIT'
                         },
                         select: {
-                            valor_total_transactions: true,
-                            date_transactions: true
+                            valor_total_transactions: true
                         }
                     }
                 },
@@ -379,11 +378,8 @@ export class PrismaPlayersRepository implements PlayersRepository {
             // Processa os jogadores filtrados e suas transações
             players.forEach(player => {
                 player.Transactions_month.forEach(transaction => {
-                    const transactionDate = new Date(transaction.date_transactions ?? '');
-                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                        const transactionAmount = transaction.valor_total_transactions ?? 0;
-                        totalAmountMonth += transactionAmount;
-                    }
+                    const transactionAmount = transaction.valor_total_transactions ?? 0;
+                    totalAmount += transactionAmount;
                 });
             });
     
@@ -391,8 +387,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
             skip += take;
         }
     
-        return totalAmountMonth;
+        return totalAmount;
     }
-    
-
 }
