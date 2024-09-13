@@ -29,7 +29,7 @@ export class GetTicketMedioUseCase {
         const months = ['janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho', 'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'];
 
         // Define o tamanho do lote para dividir as consultas
-        const batchSize = 2; // Ajuste conforme necessário
+        const batchSize = 1; // Ajuste conforme necessário
         const monthBatches = [];
 
         // Divide a lista de meses em lotes
@@ -42,11 +42,6 @@ export class GetTicketMedioUseCase {
         // Processa cada lote de meses
         for (const batch of monthBatches) {
             const batchPromises = batch.map(async (month, index) => {
-                // Pular o mês de abril
-                if (month === 'abril') {
-                    console.warn(`Pular processamento do mês ${month}`);
-                    return null; // Retorna null para meses que devem ser pulados
-                }
 
                 const monthIndex = months.indexOf(month);
                 const date_init = new Date(year, monthIndex, 1);
@@ -61,6 +56,13 @@ export class GetTicketMedioUseCase {
                     }
 
                     const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
+                    
+                    console.log("########################################################################################")
+                    console.log("Mês", month)
+                    console.log("Quantidade de jogadores", qtd_jogadores)
+                    console.log("Total amount", totalAmount)
+                    console.log("Média", average)
+                    console.log("########################################################################################")
 
                     return {
                         month,

@@ -322,14 +322,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         lte: dataFimCorrigida
                     }
                 }
-            },
-            include: {
-                Transactions_month: {
-                    where: {
-                        type_transactions: 'DEPOSIT' 
-                    }
-                },
-                Wallet: true
             }
         });
     
@@ -361,8 +353,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     where: {
                         type_transactions: 'DEPOSIT' 
                     }
-                },
-                Wallet: true
+                }
             }
         });
     

@@ -28,5 +28,6 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[], totalAmount: number, depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } }>
-    calculateMonthlyAverageTicket(ano: string): Promise<{ averageTicket: { [key: string]: { qtd_jogadores: number, totalAmount: number, average: number } } }>
+    getQtdPlayersMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number>
+    getTotalAmountMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number>
 }
