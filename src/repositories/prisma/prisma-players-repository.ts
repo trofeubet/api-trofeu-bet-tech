@@ -338,43 +338,62 @@ export class PrismaPlayersRepository implements PlayersRepository {
         const dataFimCorrigida = new Date(date_finish);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
     
-        // Filtra os jogadores pelo ftd_date no intervalo especificado
-        const players = await prisma.player.findMany({
-            where: {
-                Wallet: {
-                    ftd_date: {
-                        gte: dataInicioCorrigida,
-                        lte: dataFimCorrigida
-                    }
-                }
-            },
-            include: {
-                Transactions_month: {
-                    where: {
-                        type_transactions: 'DEPOSIT' 
-                    }
-                }
-            }
-        });
-    
-        // Inicializa o total de depósitos no intervalo de FTD
         let totalAmountMonth = 0;
+        let skip = 0;
+        const take = 1000; // Tamanho da página
+        let hasMorePlayers = true;
     
-        // Processa os jogadores filtrados e suas transações
-        players.forEach(player => {
-            player.Transactions_month.forEach(transaction => {
-                const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                // Filtra os depósitos realizados dentro do intervalo FTD
-                if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                    const transactionAmount = transaction.valor_total_transactions ?? 0;
-                    totalAmountMonth += transactionAmount; // Soma no totalAmount
-                }
+        while (hasMorePlayers) {
+            // Filtra os jogadores pelo ftd_date no intervalo especificado e com paginação
+            const players = await prisma.player.findMany({
+                where: {
+                    Wallet: {
+                        ftd_date: {
+                            gte: dataInicioCorrigida,
+                            lte: dataFimCorrigida
+                        }
+                    }
+                },
+                select: {
+                    id: true,
+                    Transactions_month: {
+                        where: {
+                            type_transactions: 'DEPOSIT'
+                        },
+                        select: {
+                            valor_total_transactions: true,
+                            date_transactions: true
+                        }
+                    }
+                },
+                skip,
+                take
             });
-        });
+            
     
-        return totalAmountMonth
-        
+            // Se não houver mais jogadores, interrompe o loop
+            if (players.length === 0) {
+                hasMorePlayers = false;
+                break;
+            }
+    
+            // Processa os jogadores filtrados e suas transações
+            players.forEach(player => {
+                player.Transactions_month.forEach(transaction => {
+                    const transactionDate = new Date(transaction.date_transactions ?? '');
+                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
+                        const transactionAmount = transaction.valor_total_transactions ?? 0;
+                        totalAmountMonth += transactionAmount;
+                    }
+                });
+            });
+    
+            // Incrementa o valor de skip para a próxima página
+            skip += take;
+        }
+    
+        return totalAmountMonth;
     }
+    
 
 }
