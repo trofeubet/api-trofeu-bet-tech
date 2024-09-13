@@ -56,13 +56,6 @@ export class GetTicketMedioUseCase {
                     }
 
                     const average = qtd_jogadores > 0 ? totalAmount / qtd_jogadores : 0;
-                    
-                    console.log("########################################################################################")
-                    console.log("Mês", month)
-                    console.log("Quantidade de jogadores", qtd_jogadores)
-                    console.log("Total amount", totalAmount)
-                    console.log("Média", average)
-                    console.log("########################################################################################")
 
                     return {
                         month,
