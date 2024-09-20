@@ -15,10 +15,14 @@ import { getUniqueUser } from "./user/get-user-unique";
 import { getPlayersLTV } from "./player/chart-players-LTV";
 import { getDepositsLTV } from "./player/chart-full-amount-LTV";
 import { getTicketMedio } from "./player/get-ticket-medio";
+import { refresh } from "./user/refresh";
+import { verificarSectores } from "../middlewares/verify-sectores";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
     app.post('/sessions', authenticateUser)
+
+    app.patch('/token/refresh', refresh)
 
     //precisa estar autenticado para acessar
     app.post('/add_player', { onRequest: [verifyJwt]}, addPlayer)
@@ -31,7 +35,7 @@ export async function appRoutes(app: FastifyInstance) {
     app.get('/users/:id', { onRequest: [verifyJwt] }, getUniqueUser);
 
     //players
-    app.post('/get_players', { onRequest: [verifyJwt] }, getPlayers);
+    app.post('/get_players', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getPlayers);
     app.get('/players/:id', { onRequest: [verifyJwt] }, getUniquePlayer);
     app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt] }, chartWithdrawalDepositMonthByPlayer);
     app.post('/grafico_ltv', { onRequest: [verifyJwt] }, getPlayersLTV);
