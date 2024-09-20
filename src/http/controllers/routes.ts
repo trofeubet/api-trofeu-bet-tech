@@ -32,17 +32,17 @@ export async function appRoutes(app: FastifyInstance) {
     //user
     app.get('/me', { onRequest: [verifyJwt] }, getProfile);
     app.put('/updateUser', { onRequest: [verifyJwt] }, updateUser);
-    app.get('/users/:id', { onRequest: [verifyJwt] }, getUniqueUser);
+    app.get('/users/:id', { onRequest: [verifyJwt,verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getUniqueUser);
 
     //players
     app.post('/get_players', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getPlayers);
-    app.get('/players/:id', { onRequest: [verifyJwt] }, getUniquePlayer);
-    app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt] }, chartWithdrawalDepositMonthByPlayer);
-    app.post('/grafico_ltv', { onRequest: [verifyJwt] }, getPlayersLTV);
-    app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt] }, getDepositsLTV);
-    app.post('/grafico_ticket_medio', { onRequest: [verifyJwt] }, getTicketMedio)
+    app.get('/players/:id', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getUniquePlayer);
+    app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, chartWithdrawalDepositMonthByPlayer);
+    app.post('/grafico_ltv', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getPlayersLTV);
+    app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getDepositsLTV);
+    app.post('/grafico_ticket_medio', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getTicketMedio)
 
 
     //users
-    app.post('/get_users', { onRequest: [verifyJwt] }, getUsers);
+    app.post('/get_users', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getUsers);
 }
