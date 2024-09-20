@@ -7,7 +7,14 @@ interface GetProfileRequest {
 }
 
 interface GetProfileResponse {
-    user: User
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        date_created: Date;
+        status: string;
+        sector: string;
+    }
 }
 
 export class GetProfileUseCase {
@@ -19,7 +26,14 @@ export class GetProfileUseCase {
         if(!user) throw new UserNotExistsError()
 
         return {
-            user
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                date_created: user.date_created,
+                status: user.status,
+                sector: user.sector
+            }
         }
     }
 }

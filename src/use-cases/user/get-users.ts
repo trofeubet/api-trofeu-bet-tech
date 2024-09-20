@@ -10,7 +10,14 @@ interface getUsersUseCaseRequest {
 }
 
 interface getUsersUseCaseResponse {
-    usersList: User[];
+    usersList: {
+        id: string;
+        name: string;
+        email: string;
+        date_created: Date;
+        status: string;
+        sector: string;
+    }[];
     totalItens: number;
     totalPages: number;
     currentPage: number;
@@ -43,8 +50,20 @@ export class GetUsersUseCase {
         if (totalPages === 0) throw new ErrorLoadingUsers();
         if (page > totalPages) throw new ErrorLoadingPage();
 
+        //map nos users retirando o password da resposta
+        const usersList = users.map(user => {
+            return {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                date_created: user.date_created,
+                status: user.status,
+                sector: Sectores[user.sector]
+            };
+        })
+
         return { 
-            usersList: users,
+            usersList,
             totalItens: totalCount,
             totalPages,
             currentPage: page

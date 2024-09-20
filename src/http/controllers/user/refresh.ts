@@ -1,8 +1,4 @@
 import { FastifyReply, FastifyRequest } from "fastify";
-import { z } from "zod";
-import { InvalidCredentialsError } from "@/use-cases/@errors/invalid-credentials-error";
-import { UserInactive } from "@/use-cases/@errors/user-inactive";
-import { makeAuthenticateUserUseCase } from "@/use-cases/@factories/user/make-authenticate-user-use-case";
 
 export async function refresh(request: FastifyRequest, reply: FastifyReply) {
 

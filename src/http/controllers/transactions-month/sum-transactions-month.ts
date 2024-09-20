@@ -102,7 +102,6 @@ export async function sumTransactionsMonth(request: FastifyRequest, reply: Fasti
             }
 
             if(type_transactions === "WITHDRAWALS") {
-                console.log(getWalletByCpf.player.Wallet?.id ?? '')
                 await updateWalletUseCase.execute({
                     id: getWalletByCpf.player.Wallet?.id ?? '',
                     qtd_withdrawals: (getWalletByCpf.player.Wallet?.qtd_withdrawals ?? 0) + 1,
