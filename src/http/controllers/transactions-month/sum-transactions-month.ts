@@ -91,7 +91,7 @@ export async function sumTransactionsMonth(request: FastifyRequest, reply: Fasti
                     total_deposit_amount: (getWalletByCpf.player.Wallet?.total_deposit_amount ?? 0) + credito
                 })
                 const ftdDate = getWalletByCpf.player.Wallet?.ftd_date;
-                const referenceDate = new Date("1000-01-01T23:59:59.000Z");
+                const referenceDate = new Date("1000-01-01 21:25:59");
 
                 if (ftdDate?.getTime() === referenceDate.getTime()) {
                     await updateWalletUseCase.execute({
