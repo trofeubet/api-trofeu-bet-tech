@@ -17,6 +17,7 @@ import { getDepositsLTV } from "./player/chart-full-amount-LTV";
 import { getTicketMedio } from "./player/get-ticket-medio";
 import { refresh } from "./user/refresh";
 import { verificarSectores } from "../middlewares/verify-sectores";
+import { updateFtdDatePlayer } from "./player/update-ftd-date-player";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -41,6 +42,7 @@ export async function appRoutes(app: FastifyInstance) {
     app.post('/grafico_ltv', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getPlayersLTV);
     app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getDepositsLTV);
     app.post('/grafico_ticket_medio', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getTicketMedio)
+    app.put('/update_ftd_date', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, updateFtdDatePlayer)
 
 
     //users

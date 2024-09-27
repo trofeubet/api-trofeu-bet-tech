@@ -30,4 +30,10 @@ export interface PlayersRepository {
     }>[], totalAmount: number, depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } }>
     getQtdPlayersMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number>
     getTotalAmountMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number>
+    getUniquePlayerByIdPlatform(id_platform: number): Promise<{ player: Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }>} | null>
 }

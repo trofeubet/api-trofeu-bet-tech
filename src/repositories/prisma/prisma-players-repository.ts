@@ -389,4 +389,31 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         return totalAmount;
     }
+
+    async getUniquePlayerByIdPlatform(id_platform: number): Promise<{ 
+        player: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }> 
+    } | null> {
+        const player = await prisma.player.findUnique({
+            where: {
+                id_platform: id_platform
+            },
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        })
+
+        if(!player) {
+            return null;
+        }
+
+        return {
+            player
+        }
+    }
 }
