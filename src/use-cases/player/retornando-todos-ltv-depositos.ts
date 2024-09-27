@@ -6,13 +6,15 @@ interface RetornandoTodosAmountLtvUseCaseRequest {
     endDate: string;
 }
 
-interface MonthlyDepositData {
+interface MonthlyDepositWithDrawalsData {
     totalAmount: number;
     depositAmountPerMonth: { [key: string]: { amount: number; percentage: number } };
+    totalWithdrawals: number;
+    depositWithdrawalsPerMonth: { [key: string]: { withdrawals: number; percentage: number } };
 }
 
 interface RetornandoTodosAmountLtvUseCaseResponse {
-    [key: string]: MonthlyDepositData;
+    [key: string]: MonthlyDepositWithDrawalsData;
 }
 
 export class RetornandoTodosAmountLtvUseCase {
@@ -35,6 +37,7 @@ export class RetornandoTodosAmountLtvUseCase {
         const endYear = data_fim.getFullYear();
 
         let totalOverallAmount = 0;
+        let totalOverallWithdrawals = 0;
 
         // Loop through each month in the range
         for (let year = startYear; year <= endYear; year++) {
@@ -45,30 +48,30 @@ export class RetornandoTodosAmountLtvUseCase {
                 const startOfMonth = new Date(year, month, 1);
                 const endOfMonth = new Date(year, month + 1, 0); // Last day of the month
 
-                // Fetch players for the current month
-                const { players, totalAmount, depositAmountPerMonth } = await this.playersRepository.getFullAmountByFtdDate(startOfMonth, endOfMonth);
-
-                // Update overall total amount
-                totalOverallAmount += totalAmount;
-
-                // Store results in response
-                response[new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(startOfMonth)] = {
+                // Fetch players for the current month (deposits and withdrawals)
+                const {
                     totalAmount,
                     depositAmountPerMonth
+                } = await this.playersRepository.getFullAmountByFtdDate(startOfMonth, endOfMonth);
+
+                const {
+                    totalWithdrawals,
+                    depositWithdrawalsPerMonth
+                } = await this.playersRepository.getFullWithdrawalsByFtdDate(startOfMonth, endOfMonth);
+
+                // Update overall totals
+                totalOverallAmount += totalAmount;
+                totalOverallWithdrawals += totalWithdrawals;
+
+                // Store combined results in response
+                const formattedMonth = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' }).format(startOfMonth);
+                response[formattedMonth] = {
+                    totalAmount,
+                    depositAmountPerMonth,
+                    totalWithdrawals,
+                    depositWithdrawalsPerMonth
                 };
             }
-        }
-
-        // Calculate percentages
-        for (const month in response) {
-            const amount = response[month].totalAmount;
-            response[month].depositAmountPerMonth = {
-                ...response[month].depositAmountPerMonth,
-                percentage: {
-                    amount,
-                    percentage: totalOverallAmount > 0 ? (amount / totalOverallAmount) * 100 : 0,
-                },
-            };
         }
 
         return response;

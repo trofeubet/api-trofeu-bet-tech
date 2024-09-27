@@ -416,97 +416,101 @@ export class PrismaPlayersRepository implements PlayersRepository {
             player
         }
     }
+    
 
-
-    async getFullAmountByMonthRange(date_init: Date, date_finish: Date): Promise<{ 
+    async getFullWithdrawalsByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
         players: Prisma.PlayerGetPayload<{
             include: {
                 Transactions_month: true,
                 Wallet: true
             }
         }>[], 
-        totalAmount: number,
-        depositAmountPerMonth: { 
-            [key: string]: { amount: number, percentage: number }
+        totalWithdrawals: number,
+        depositWithdrawalsPerMonth: { 
+            [key: string]: { withdrawals: number, percentage: number } // Inclui a porcentagem
         }
     }> {
-        const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
-            "Janeiro": { amount: 0, percentage: 0 },
-            "Fevereiro": { amount: 0, percentage: 0 },
-            "Março": { amount: 0, percentage: 0 },
-            "Abril": { amount: 0, percentage: 0 },
-            "Maio": { amount: 0, percentage: 0 },
-            "Junho": { amount: 0, percentage: 0 },
-            "Julho": { amount: 0, percentage: 0 },
-            "Agosto": { amount: 0, percentage: 0 },
-            "Setembro": { amount: 0, percentage: 0 },
-            "Outubro": { amount: 0, percentage: 0 },
-            "Novembro": { amount: 0, percentage: 0 },
-            "Dezembro": { amount: 0, percentage: 0 }
-        };
+        const dataInicioCorrigida = new Date(date_init);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
-        let totalAmount = 0;
+        const dataFimCorrigida = new Date(date_finish);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
     
-        // Verifica se o intervalo de datas está dentro de 2024
-        const startOf2024 = new Date(2024, 0, 1); // 1º de Janeiro de 2024
-        const endOf2024 = new Date(2024, 11, 31); // 31 de Dezembro de 2024
-        const effectiveDateInit = date_init >= startOf2024 ? date_init : startOf2024;
-        const effectiveDateFinish = date_finish <= endOf2024 ? date_finish : endOf2024;
-    
-        for (let month = 0; month < 12; month++) {
-            const startOfMonth = new Date(2024, month, 1);
-            const endOfMonth = new Date(2024, month + 1, 0); // Último dia do mês
-    
-            // Verifica se o mês atual está dentro do intervalo de datas
-            if (endOfMonth >= effectiveDateInit && startOfMonth <= effectiveDateFinish) {
-                // Filtra os jogadores pelo ftd_date no intervalo de 2024
-                const players = await prisma.player.findMany({
-                    where: {
-                        Wallet: {
-                            ftd_date: {
-                                gte: startOfMonth, // A data de início é a do mês atual
-                                lte: endOfMonth // A data de fim é o último dia do mês atual
-                            }
-                        }
-                    },
-                    include: {
-                        Transactions_month: true,
-                        Wallet: true
+        // Filtra os jogadores pelo ftd_date no intervalo especificado
+        const players = await prisma.player.findMany({
+            where: {
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
                     }
-                });
-    
-                // Processa os jogadores filtrados e suas transações
-                players.forEach(player => {
-                    // Verifica transações dentro do intervalo do mês atual
-                    player.Transactions_month.forEach(transaction => {
-                        if (transaction.type_transactions === 'DEPOSIT') {
-                            const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                            // Filtra os depósitos realizados dentro do mês atual e dentro do intervalo de datas
-                            if (transactionDate >= startOfMonth && transactionDate <= endOfMonth) {
-                                const transactionAmount = transaction.valor_total_transactions ?? 0;
-                                totalAmount += transactionAmount; // Soma no totalAmount
-                                depositAmountPerMonth[new Date(transactionDate).toLocaleString('pt-BR', { month: 'long' })].amount += transactionAmount;
-                            }
-                        }
-                    });
-                });
+                }
+            },
+            include: {
+                Transactions_month: true,
+                Wallet: true
             }
-        }
-    
-        // Calcula a porcentagem para cada mês com base no totalAmount
-        Object.keys(depositAmountPerMonth).forEach(month => {
-            const amount = depositAmountPerMonth[month].amount;
-            depositAmountPerMonth[month].percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
         });
     
+        // Inicializa o total de depósitos no intervalo de FTD
+        let totalWithdrawals = 0;
+    
+        // Inicializa o mapa de somas de depósitos por mês
+        const depositWithdrawalsPerMonth: { [key: string]: { withdrawals: number, percentage: number } } = {
+            "Janeiro": { withdrawals: 0, percentage: 0 }, 
+            "Fevereiro": { withdrawals: 0, percentage: 0 }, 
+            "Março": { withdrawals: 0, percentage: 0 }, 
+            "Abril": { withdrawals: 0, percentage: 0 }, 
+            "Maio": { withdrawals: 0, percentage: 0 }, 
+            "Junho": { withdrawals: 0, percentage: 0 }, 
+            "Julho": { withdrawals: 0, percentage: 0 }, 
+            "Agosto": { withdrawals: 0, percentage: 0 }, 
+            "Setembro": { withdrawals: 0, percentage: 0 }, 
+            "Outubro": { withdrawals: 0, percentage: 0 }, 
+            "Novembro": { withdrawals: 0, percentage: 0 }, 
+            "Dezembro": { withdrawals: 0, percentage: 0 }
+        };
+    
+        // Processa os jogadores filtrados e suas transações
+        players.forEach(player => {
+            // Verifica transações dentro do intervalo de FTD para somar no totalAmount
+            player.Transactions_month.forEach(transaction => {
+                if (transaction.type_transactions === 'WITHDRAWALS') {
+                    const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                    // Filtra os depósitos realizados dentro do intervalo FTD
+                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
+                        const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
+                        totalWithdrawals += transactionWithdrawals; // Soma no totalAmount
+                    }
+    
+                    // Para os depósitos após o FTD, adiciona no mapa de meses
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
+    
+                    // Soma o valor da transação ao mês correspondente
+                    const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
+                    depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
+                }
+            });
+        });
+    
+        // Calcula a porcentagem para cada mês com base no totalAmount
+        Object.keys(depositWithdrawalsPerMonth).forEach(month => {
+            const withdrawals = depositWithdrawalsPerMonth[month].withdrawals;
+            depositWithdrawalsPerMonth[month].percentage = totalWithdrawals > 0 ? (withdrawals / totalWithdrawals) * 100 : 0;
+        });
+
+        console.log(totalWithdrawals)
+    
         return { 
-            players: [], // Se necessário, você pode ajustar para retornar os jogadores relevantes
-            totalAmount,
-            depositAmountPerMonth
+            players,
+            totalWithdrawals,
+            depositWithdrawalsPerMonth
         };
     }
-    
-    
-    
 }
