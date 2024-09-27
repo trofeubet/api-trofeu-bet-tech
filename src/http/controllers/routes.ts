@@ -18,6 +18,7 @@ import { getTicketMedio } from "./player/get-ticket-medio";
 import { refresh } from "./user/refresh";
 import { verificarSectores } from "../middlewares/verify-sectores";
 import { updateFtdDatePlayer } from "./player/update-ftd-date-player";
+import { retornandoTodosDepositsLTV } from "./player/retornando-todos-ltv-depositos";
 
 export async function appRoutes(app: FastifyInstance) {
     app.post('/users', registerUser)
@@ -41,6 +42,10 @@ export async function appRoutes(app: FastifyInstance) {
     app.post('/relatorio_mensal_transacoes_by_player', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, chartWithdrawalDepositMonthByPlayer);
     app.post('/grafico_ltv', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getPlayersLTV);
     app.post('/grafico_ltv_deposits', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getDepositsLTV);
+
+    app.post('/retornando_todos_ltv_deposits', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, retornandoTodosDepositsLTV);
+
+
     app.post('/grafico_ticket_medio', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, getTicketMedio)
     app.put('/update_ftd_date', { onRequest: [verifyJwt, verificarSectores(['GERENCIAL', 'DESENVOLVIMENTO'])] }, updateFtdDatePlayer)
 

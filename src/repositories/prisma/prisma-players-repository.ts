@@ -416,4 +416,97 @@ export class PrismaPlayersRepository implements PlayersRepository {
             player
         }
     }
+
+
+    async getFullAmountByMonthRange(date_init: Date, date_finish: Date): Promise<{ 
+        players: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }>[], 
+        totalAmount: number,
+        depositAmountPerMonth: { 
+            [key: string]: { amount: number, percentage: number }
+        }
+    }> {
+        const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
+            "Janeiro": { amount: 0, percentage: 0 },
+            "Fevereiro": { amount: 0, percentage: 0 },
+            "Março": { amount: 0, percentage: 0 },
+            "Abril": { amount: 0, percentage: 0 },
+            "Maio": { amount: 0, percentage: 0 },
+            "Junho": { amount: 0, percentage: 0 },
+            "Julho": { amount: 0, percentage: 0 },
+            "Agosto": { amount: 0, percentage: 0 },
+            "Setembro": { amount: 0, percentage: 0 },
+            "Outubro": { amount: 0, percentage: 0 },
+            "Novembro": { amount: 0, percentage: 0 },
+            "Dezembro": { amount: 0, percentage: 0 }
+        };
+    
+        let totalAmount = 0;
+    
+        // Verifica se o intervalo de datas está dentro de 2024
+        const startOf2024 = new Date(2024, 0, 1); // 1º de Janeiro de 2024
+        const endOf2024 = new Date(2024, 11, 31); // 31 de Dezembro de 2024
+        const effectiveDateInit = date_init >= startOf2024 ? date_init : startOf2024;
+        const effectiveDateFinish = date_finish <= endOf2024 ? date_finish : endOf2024;
+    
+        for (let month = 0; month < 12; month++) {
+            const startOfMonth = new Date(2024, month, 1);
+            const endOfMonth = new Date(2024, month + 1, 0); // Último dia do mês
+    
+            // Verifica se o mês atual está dentro do intervalo de datas
+            if (endOfMonth >= effectiveDateInit && startOfMonth <= effectiveDateFinish) {
+                // Filtra os jogadores pelo ftd_date no intervalo de 2024
+                const players = await prisma.player.findMany({
+                    where: {
+                        Wallet: {
+                            ftd_date: {
+                                gte: startOfMonth, // A data de início é a do mês atual
+                                lte: endOfMonth // A data de fim é o último dia do mês atual
+                            }
+                        }
+                    },
+                    include: {
+                        Transactions_month: true,
+                        Wallet: true
+                    }
+                });
+    
+                // Processa os jogadores filtrados e suas transações
+                players.forEach(player => {
+                    // Verifica transações dentro do intervalo do mês atual
+                    player.Transactions_month.forEach(transaction => {
+                        if (transaction.type_transactions === 'DEPOSIT') {
+                            const transactionDate = new Date(transaction.date_transactions ?? '');
+    
+                            // Filtra os depósitos realizados dentro do mês atual e dentro do intervalo de datas
+                            if (transactionDate >= startOfMonth && transactionDate <= endOfMonth) {
+                                const transactionAmount = transaction.valor_total_transactions ?? 0;
+                                totalAmount += transactionAmount; // Soma no totalAmount
+                                depositAmountPerMonth[new Date(transactionDate).toLocaleString('pt-BR', { month: 'long' })].amount += transactionAmount;
+                            }
+                        }
+                    });
+                });
+            }
+        }
+    
+        // Calcula a porcentagem para cada mês com base no totalAmount
+        Object.keys(depositAmountPerMonth).forEach(month => {
+            const amount = depositAmountPerMonth[month].amount;
+            depositAmountPerMonth[month].percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+        });
+    
+        return { 
+            players: [], // Se necessário, você pode ajustar para retornar os jogadores relevantes
+            totalAmount,
+            depositAmountPerMonth
+        };
+    }
+    
+    
+    
 }
