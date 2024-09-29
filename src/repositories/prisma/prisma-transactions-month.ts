@@ -53,4 +53,34 @@ export class PrismaTransactionsMonthRepository implements TransactionsMonthRepos
     
         return transactions_month;
     }
+
+    async deleteTransactionsMonthByCpf(cpf: string, type_transactions: "DEPOSIT" | "WITHDRAWALS"): Promise<Transactions_month[] | null> {
+        // Primeiro, busque as transações que vão ser deletadas
+        const transactions = await prisma.transactions_month.findMany({
+            where: {
+                cpf: cpf,
+                type_transactions: type_transactions
+            }
+        });
+
+        console.log("TRANSAÇÕES",transactions)
+    
+        if (transactions.length === 0) {
+            return null; // Se não houver transações, retorne null
+        }
+    
+        // Deleta as transações
+        const transacoesDel = await prisma.transactions_month.deleteMany({
+            where: {
+                cpf: cpf,
+                type_transactions: type_transactions
+            }
+        });
+
+        console.log("TRANSAÇÕES DELETADAS",transacoesDel)
+    
+        // Retorna as transações deletadas
+        return transactions;
+    }
+    
 }

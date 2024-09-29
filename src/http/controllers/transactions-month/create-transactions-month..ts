@@ -7,6 +7,7 @@ import { Transactions } from "@prisma/client";
 import { makeGetTransactionsMonthByCpfDateUseCase } from "@/use-cases/@factories/transactions-month/make-get-transaction-month-cpf-date-use-case";
 import { makeUpdateWalletUseCase } from "@/use-cases/@factories/wallet/make-update-wallet-use-case";
 import { makeGetWalletByCpfUseCase } from "@/use-cases/@factories/wallet/make-get-wallet-by-cpf-use-case";
+import { makeDeleteByCpfTransactionMonthUseCaseUseCase } from "@/use-cases/@factories/transactions-month/make-delete-transaction-month-cpf-use-case copy";
 
 export async function createTransactionsMonth(request: FastifyRequest, reply: FastifyReply) {
     const addTransactionsMonthBodySchema = z.object({
@@ -27,6 +28,7 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
         const getTransactionsMonthUseCase = makeGetTransactionsMonthByCpfDateUseCase();
         const updateWallet = makeUpdateWalletUseCase();
         const getWallet = makeGetWalletByCpfUseCase();
+        const deleteTransactionsMonth = makeDeleteByCpfTransactionMonthUseCaseUseCase();
 
         // Objeto para armazenar os totais de cada mês por CPF
         const monthlyCredits: { [key: string]: { [cpf: string]: number } } = {};
@@ -63,23 +65,18 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
             monthlyCredits[monthYearKey][cpf] += credito;
         }
 
+        const cpf = rows[0].cpf;
+
+        await deleteTransactionsMonth.execute({
+            cpf,
+            type_transactions
+        })
+
         for (const [monthYear, cpfCredits] of Object.entries(monthlyCredits)) {
             const [year, month] = monthYear.split('-');
             const date_transactions = new Date(Number(year), Number(month) - 1, 1);
 
             for (const [cpf, totalCredit] of Object.entries(cpfCredits)) {
-
-                const transactionExist = await getTransactionsMonthUseCase.execute({
-                    cpf,
-                    date_transactions,
-                    type_transactions
-                });
-                
-                if (transactionExist.transaction_month.id != '') {
-                    return reply.status(409).send({
-                        message: `Transação do tipo ${type_transactions} para CPF ${cpf} no mês ${monthYear} já existe.`,
-                    });
-                }
 
                 await addTransactionsMonthUseCase.execute({
                     cpf,
