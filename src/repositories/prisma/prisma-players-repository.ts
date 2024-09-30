@@ -281,26 +281,21 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         const monthNumber = transactionDate.getUTCMonth(); // Mês de 0 a 11
                         const yearNumber = transactionDate.getUTCFullYear(); // Ano completo
         
-                        // Verifica se o ano corresponde ao ano que estamos analisando
-                        if (yearNumber === 2024) { // Substitua 2024 pela variável do ano que você está analisando
-                            const currentMonth = new Date().getUTCMonth(); // Mês atual
+                        // Verifica se o ano e o mês correspondem ao mês que estamos analisando
+                        if (yearNumber === 2024) { // Substitua anoAtual pela variável do ano que você está analisando
                             const monthNames = [
                                 "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                                 "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                             ];
                             const monthName = monthNames[monthNumber];
         
-                            // Verifica se o mês da transação é igual ou maior que o mês atual
-                            if (monthNumber >= currentMonth) {
-                                // Soma o valor da transação ao mês correspondente
-                                depositAmountPerMonth[monthName].amount += transactionAmount;
-                            }
+                            // Soma o valor da transação ao mês correspondente
+                            depositAmountPerMonth[monthName].amount += transactionAmount;
                         }
                     }
                 }
             });
         });
-        
         
     
         // Calcula a porcentagem para cada mês com base no totalAmount
@@ -498,25 +493,20 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         const yearNumber = transactionDate.getUTCFullYear(); // Ano completo
         
                         // Verifica se o ano corresponde ao ano que estamos analisando
-                        if (yearNumber === 2024) { // Substitua 2024 pelo ano que você está analisando
-                            const currentMonth = new Date().getUTCMonth(); // Mês atual
+                        if (yearNumber === 2024) { // Substitua anoAtual pela variável do ano que você está analisando
                             const monthNames = [
                                 "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                                 "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                             ];
                             const monthName = monthNames[monthNumber];
         
-                            // Verifica se o mês da transação é igual ou maior que o mês atual
-                            if (monthNumber >= currentMonth) {
-                                // Soma o valor da transação ao mês correspondente
-                                depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
-                            }
+                            // Soma o valor da transação ao mês correspondente
+                            depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
                         }
                     }
                 }
             });
         });
-        
     
         // Calcula a porcentagem para cada mês com base no totalAmount
         Object.keys(depositWithdrawalsPerMonth).forEach(month => {
