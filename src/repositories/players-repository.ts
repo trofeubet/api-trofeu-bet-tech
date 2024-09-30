@@ -42,5 +42,10 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[], totalWithdrawals: number, depositWithdrawalsPerMonth: { [key: string]: { withdrawals: number, percentage: number } } }>
-    
+    getPlyerByCpf(cpf: string): Promise<Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }> | null>
 }

@@ -3,11 +3,10 @@ import { z } from "zod";
 import { makeAddTransactionsMonthUseCase } from "@/use-cases/@factories/transactions-month/make-add-transaction-month-use-case";
 import { PlayerNotExistsError } from "@/use-cases/@errors/player-not-exists";
 import { DepositAlreadyExist } from "@/use-cases/@errors/deposit-already-exist";
-import { Transactions } from "@prisma/client";
-import { makeGetTransactionsMonthByCpfDateUseCase } from "@/use-cases/@factories/transactions-month/make-get-transaction-month-cpf-date-use-case";
 import { makeUpdateWalletUseCase } from "@/use-cases/@factories/wallet/make-update-wallet-use-case";
 import { makeGetWalletByCpfUseCase } from "@/use-cases/@factories/wallet/make-get-wallet-by-cpf-use-case";
 import { makeDeleteByCpfTransactionMonthUseCaseUseCase } from "@/use-cases/@factories/transactions-month/make-delete-transaction-month-cpf-use-case copy";
+import { makeGetPlayerByCpfUseCase } from "@/use-cases/@factories/player/make-get-unique-player-by-cpf-use-case";
 
 export async function createTransactionsMonth(request: FastifyRequest, reply: FastifyReply) {
     const addTransactionsMonthBodySchema = z.object({
@@ -25,10 +24,10 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
         
 
         const addTransactionsMonthUseCase = makeAddTransactionsMonthUseCase();
-        const getTransactionsMonthUseCase = makeGetTransactionsMonthByCpfDateUseCase();
         const updateWallet = makeUpdateWalletUseCase();
         const getWallet = makeGetWalletByCpfUseCase();
         const deleteTransactionsMonth = makeDeleteByCpfTransactionMonthUseCaseUseCase();
+        const getPlayerByCpf = makeGetPlayerByCpfUseCase();
 
         // Objeto para armazenar os totais de cada mês por CPF
         const monthlyCredits: { [key: string]: { [cpf: string]: number } } = {};
@@ -66,11 +65,13 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
         }
 
         const cpf = rows[0].cpf;
-
-        await deleteTransactionsMonth.execute({
-            cpf,
-            type_transactions
-        })
+        const transactionsExistPlayer = await getPlayerByCpf.execute({cpf: cpf});
+        if(transactionsExistPlayer.player.Transactions_month.length > 0) {
+            await deleteTransactionsMonth.execute({
+                cpf,
+                type_transactions
+            })
+        }
 
         for (const [monthYear, cpfCredits] of Object.entries(monthlyCredits)) {
             const [year, month] = monthYear.split('-');

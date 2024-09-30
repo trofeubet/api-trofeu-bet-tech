@@ -504,13 +504,30 @@ export class PrismaPlayersRepository implements PlayersRepository {
             const withdrawals = depositWithdrawalsPerMonth[month].withdrawals;
             depositWithdrawalsPerMonth[month].percentage = totalWithdrawals > 0 ? (withdrawals / totalWithdrawals) * 100 : 0;
         });
-
-        console.log(totalWithdrawals)
     
         return { 
             players,
             totalWithdrawals,
             depositWithdrawalsPerMonth
         };
+    }
+
+    async getPlyerByCpf(cpf: string): Promise<Prisma.PlayerGetPayload<{
+        include: {
+            Transactions_month: true,
+            Wallet: true
+        }
+    }> | null> {
+        const player = await prisma.player.findUnique({
+            where: {
+                cpf
+            },
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        })
+
+        return player
     }
 }

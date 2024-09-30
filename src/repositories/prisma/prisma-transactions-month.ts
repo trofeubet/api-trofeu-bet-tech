@@ -62,8 +62,6 @@ export class PrismaTransactionsMonthRepository implements TransactionsMonthRepos
                 type_transactions: type_transactions
             }
         });
-
-        console.log("TRANSAÇÕES",transactions)
     
         if (transactions.length === 0) {
             return null; // Se não houver transações, retorne null
@@ -76,8 +74,6 @@ export class PrismaTransactionsMonthRepository implements TransactionsMonthRepos
                 type_transactions: type_transactions
             }
         });
-
-        console.log("TRANSAÇÕES DELETADAS",transacoesDel)
     
         // Retorna as transações deletadas
         return transactions;
