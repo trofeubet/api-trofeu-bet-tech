@@ -65,13 +65,23 @@ export async function createTransactionsMonth(request: FastifyRequest, reply: Fa
         }
 
         const cpf = rows[0].cpf;
-        const transactionsExistPlayer = await getPlayerByCpf.execute({cpf: cpf});
-        if(transactionsExistPlayer.player.Transactions_month.length > 0) {
-            await deleteTransactionsMonth.execute({
-                cpf,
-                type_transactions
-            })
+        const transactionsExistPlayer = await getPlayerByCpf.execute({ cpf });
+
+        if (transactionsExistPlayer && transactionsExistPlayer.player && Array.isArray(transactionsExistPlayer.player.Transactions_month)) {
+            const existingTransactions = transactionsExistPlayer.player.Transactions_month;
+        
+            // Filtrar apenas as transações do tipo atual (DEPOSIT ou WITHDRAWALS)
+            const existingTransactionsOfType = existingTransactions.filter(transaction => transaction.type_transactions === type_transactions);
+        
+            if (existingTransactionsOfType.length > 0) {
+                await deleteTransactionsMonth.execute({
+                    cpf,
+                    type_transactions // Remova apenas as transações do tipo atual
+                });
+            }
         }
+        
+
 
         for (const [monthYear, cpfCredits] of Object.entries(monthlyCredits)) {
             const [year, month] = monthYear.split('-');
