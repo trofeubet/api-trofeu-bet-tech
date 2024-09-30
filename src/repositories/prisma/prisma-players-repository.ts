@@ -271,32 +271,27 @@ export class PrismaPlayersRepository implements PlayersRepository {
             player.Transactions_month.forEach(transaction => {
                 if (transaction.type_transactions === 'DEPOSIT') {
                     const transactionDate = new Date(transaction.date_transactions ?? '');
-        
+    
                     // Filtra os depósitos realizados dentro do intervalo FTD
                     if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
                         const transactionAmount = transaction.valor_total_transactions ?? 0;
                         totalAmount += transactionAmount; // Soma no totalAmount
-        
-                        // Obtém o mês e o ano da data da transação
-                        const monthNumber = transactionDate.getUTCMonth(); // Mês de 0 a 11
-                        const yearNumber = transactionDate.getUTCFullYear(); // Ano completo
-        
-                        // Verifica se o ano e o mês correspondem ao mês que estamos analisando
-                        if (yearNumber === 2024) { // Substitua anoAtual pela variável do ano que você está analisando
-                            const monthNames = [
-                                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                            ];
-                            const monthName = monthNames[monthNumber];
-        
-                            // Soma o valor da transação ao mês correspondente
-                            depositAmountPerMonth[monthName].amount += transactionAmount;
-                        }
                     }
+    
+                    // Para os depósitos após o FTD, adiciona no mapa de meses
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
+    
+                    // Soma o valor da transação ao mês correspondente
+                    const transactionAmount = transaction.valor_total_transactions ?? 0;
+                    depositAmountPerMonth[monthName].amount += transactionAmount;
                 }
             });
         });
-        
     
         // Calcula a porcentagem para cada mês com base no totalAmount
         Object.keys(depositAmountPerMonth).forEach(month => {
@@ -478,32 +473,28 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         // Processa os jogadores filtrados e suas transações
         players.forEach(player => {
-            // Verifica transações dentro do intervalo de FTD para somar no totalWithdrawals
+            // Verifica transações dentro do intervalo de FTD para somar no totalAmount
             player.Transactions_month.forEach(transaction => {
                 if (transaction.type_transactions === 'WITHDRAWALS') {
                     const transactionDate = new Date(transaction.date_transactions ?? '');
-        
-                    // Filtra os saques realizados dentro do intervalo FTD
+    
+                    // Filtra os depósitos realizados dentro do intervalo FTD
                     if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
                         const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
-                        totalWithdrawals += transactionWithdrawals; // Soma no totalWithdrawals
-        
-                        // Obtém o mês e o ano da data da transação
-                        const monthNumber = transactionDate.getUTCMonth(); // Mês de 0 a 11
-                        const yearNumber = transactionDate.getUTCFullYear(); // Ano completo
-        
-                        // Verifica se o ano corresponde ao ano que estamos analisando
-                        if (yearNumber === 2024) { // Substitua anoAtual pela variável do ano que você está analisando
-                            const monthNames = [
-                                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                            ];
-                            const monthName = monthNames[monthNumber];
-        
-                            // Soma o valor da transação ao mês correspondente
-                            depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
-                        }
+                        totalWithdrawals += transactionWithdrawals; // Soma no totalAmount
                     }
+    
+                    // Para os depósitos após o FTD, adiciona no mapa de meses
+                    const monthNumber = transactionDate.getUTCMonth() + 1;
+                    const monthNames = [
+                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                    ];
+                    const monthName = monthNames[monthNumber - 1];
+    
+                    // Soma o valor da transação ao mês correspondente
+                    const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
+                    depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
                 }
             });
         });
