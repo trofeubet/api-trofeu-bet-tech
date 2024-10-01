@@ -342,7 +342,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         dataFimCorrigida.setUTCHours(23, 59, 59, 999); // Fim do dia
 
         let skip = 0;
-        const take = 50000; // Tamanho da página
+        const take = 32000; // Tamanho da página
         let hasMorePlayers = true;
 
         while(hasMorePlayers) {
@@ -486,7 +486,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
 
         let skip = 0;
-        const take = 50000; // Tamanho da página
+        const take = 32000; // Tamanho da página
         let hasMorePlayers = true;
 
         while(hasMorePlayers) {
