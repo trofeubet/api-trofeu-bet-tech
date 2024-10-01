@@ -212,100 +212,6 @@ export class PrismaPlayersRepository implements PlayersRepository {
         };
     }
 
-    async getFullAmountByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
-        players: Prisma.PlayerGetPayload<{
-            include: {
-                Transactions_month: true,
-                Wallet: true
-            }
-        }>[], 
-        totalAmount: number,
-        depositAmountPerMonth: { 
-            [key: string]: { amount: number, percentage: number } // Inclui a porcentagem
-        }
-    }> {
-        const dataInicioCorrigida = new Date(date_init);
-        dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
-    
-        const dataFimCorrigida = new Date(date_finish);
-        dataFimCorrigida.setUTCHours(23, 59, 59, 999);
-    
-        // Filtra os jogadores pelo ftd_date no intervalo especificado
-        const players = await prisma.player.findMany({
-            where: {
-                Wallet: {
-                    ftd_date: {
-                        gte: dataInicioCorrigida,
-                        lte: dataFimCorrigida
-                    }
-                }
-            },
-            include: {
-                Transactions_month: true,
-                Wallet: true
-            }
-        });
-    
-        // Inicializa o total de depósitos no intervalo de FTD
-        let totalAmount = 0;
-    
-        // Inicializa o mapa de somas de depósitos por mês
-        const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
-            "Janeiro": { amount: 0, percentage: 0 }, 
-            "Fevereiro": { amount: 0, percentage: 0 }, 
-            "Março": { amount: 0, percentage: 0 }, 
-            "Abril": { amount: 0, percentage: 0 }, 
-            "Maio": { amount: 0, percentage: 0 }, 
-            "Junho": { amount: 0, percentage: 0 }, 
-            "Julho": { amount: 0, percentage: 0 }, 
-            "Agosto": { amount: 0, percentage: 0 }, 
-            "Setembro": { amount: 0, percentage: 0 }, 
-            "Outubro": { amount: 0, percentage: 0 }, 
-            "Novembro": { amount: 0, percentage: 0 }, 
-            "Dezembro": { amount: 0, percentage: 0 }
-        };
-    
-        // Processa os jogadores filtrados e suas transações
-        players.forEach(player => {
-            // Verifica transações dentro do intervalo de FTD para somar no totalAmount
-            player.Transactions_month.forEach(transaction => {
-                if (transaction.type_transactions === 'DEPOSIT') {
-                    const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                    // Filtra os depósitos realizados dentro do intervalo FTD
-                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                        const transactionAmount = transaction.valor_total_transactions ?? 0;
-                        totalAmount += transactionAmount; // Soma no totalAmount
-                    }
-    
-                    // Para os depósitos após o FTD, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth() + 1;
-                    const monthNames = [
-                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                    ];
-                    const monthName = monthNames[monthNumber - 1];
-    
-                    // Soma o valor da transação ao mês correspondente
-                    const transactionAmount = transaction.valor_total_transactions ?? 0;
-                    depositAmountPerMonth[monthName].amount += transactionAmount;
-                }
-            });
-        });
-    
-        // Calcula a porcentagem para cada mês com base no totalAmount
-        Object.keys(depositAmountPerMonth).forEach(month => {
-            const amount = depositAmountPerMonth[month].amount;
-            depositAmountPerMonth[month].percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
-        });
-    
-        return { 
-            players,
-            totalAmount,
-            depositAmountPerMonth
-        };
-    }
-
     async getQtdPlayersMonthByFtdDate(date_init: Date, date_finish: Date): Promise<number> {
         const dataInicioCorrigida = new Date(date_init);
         dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
@@ -417,8 +323,116 @@ export class PrismaPlayersRepository implements PlayersRepository {
         }
     }
     
+    async getFullAmountByFtdDate(startOfMonth: Date, endOfMonth: Date, date_init: Date, date_finish: Date): Promise<{ 
+        players: Prisma.PlayerGetPayload<{
+            include: {
+                Transactions_month: true,
+                Wallet: true
+            }
+        }>[], 
+        totalAmount: number,
+        depositAmountPerMonth: { 
+            [key: string]: { amount: number, percentage: number } 
+        }
+    }> {
+        const dataInicioCorrigida = new Date(startOfMonth);
+        dataInicioCorrigida.setUTCHours(0, 0, 0, 0); // Começo do dia
+    
+        const dataFimCorrigida = new Date(endOfMonth);
+        dataFimCorrigida.setUTCHours(23, 59, 59, 999); // Fim do dia
 
-    async getFullWithdrawalsByFtdDate(date_init: Date, date_finish: Date): Promise<{ 
+        const players = await prisma.player.findMany({
+            where: {
+                Wallet: {
+                    ftd_date: {
+                        gte: dataInicioCorrigida,
+                        lte: dataFimCorrigida
+                    }
+                },
+                Transactions_month: {
+                    some: {
+                        type_transactions: 'DEPOSIT',
+                        date_transactions: {
+                            gte: date_init,
+                            lte: date_finish
+                        }
+                    },
+                }
+            },
+            include: {
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'DEPOSIT', 
+                        date_transactions: {
+                            gte: date_init,
+                            lte: date_finish
+                        }
+                    }
+                },
+                Wallet: true
+            }
+        });
+    
+        // Inicializa o total de depósitos no intervalo de FTD
+        let totalAmount = 0;
+    
+        // Inicializa o mapa de somas de depósitos por mês
+        const depositAmountPerMonth: { [key: string]: { amount: number, percentage: number } } = {
+            "Janeiro": { amount: 0, percentage: 0 }, 
+            "Fevereiro": { amount: 0, percentage: 0 }, 
+            "Março": { amount: 0, percentage: 0 }, 
+            "Abril": { amount: 0, percentage: 0 }, 
+            "Maio": { amount: 0, percentage: 0 }, 
+            "Junho": { amount: 0, percentage: 0 }, 
+            "Julho": { amount: 0, percentage: 0 }, 
+            "Agosto": { amount: 0, percentage: 0 }, 
+            "Setembro": { amount: 0, percentage: 0 }, 
+            "Outubro": { amount: 0, percentage: 0 }, 
+            "Novembro": { amount: 0, percentage: 0 }, 
+            "Dezembro": { amount: 0, percentage: 0 }
+        };
+        
+        // Processa os jogadores filtrados e suas transações
+        players.forEach(player => {
+            player.Transactions_month.forEach(transaction => {
+                const transactionAmount = transaction.valor_total_transactions ?? 0;
+
+                const transactionDate = new Date(transaction.date_transactions ?? '');
+                const isTransactionInReferenceMonth = transactionDate >= startOfMonth && transactionDate <= endOfMonth;
+
+                // Se a transação está no mês de referência, soma ao totalAmount
+                if (isTransactionInReferenceMonth) {
+                    totalAmount += transactionAmount;
+                }
+    
+                // Para os depósitos, adiciona no mapa de meses
+                const monthNumber = transactionDate.getUTCMonth(); // O mês é 0-indexado
+                const monthNames = [
+                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ];
+                const monthName = monthNames[monthNumber];
+    
+                // Soma o valor da transação ao mês correspondente
+                depositAmountPerMonth[monthName].amount += transactionAmount;
+            });
+        });
+    
+        // Calcula a porcentagem para cada mês com base no totalAmount
+        Object.keys(depositAmountPerMonth).forEach(month => {
+            const amount = depositAmountPerMonth[month].amount;
+            depositAmountPerMonth[month].percentage = totalAmount > 0 ? (amount / totalAmount) * 100 : 0;
+        });
+    
+        return { 
+            players,
+            totalAmount,
+            depositAmountPerMonth
+        };
+    }
+
+
+    async getFullWithdrawalsByFtdDate(startOfMonth: Date, endOfMonth: Date, date_init: Date, date_finish: Date): Promise<{ 
         players: Prisma.PlayerGetPayload<{
             include: {
                 Transactions_month: true,
@@ -427,13 +441,13 @@ export class PrismaPlayersRepository implements PlayersRepository {
         }>[], 
         totalWithdrawals: number,
         depositWithdrawalsPerMonth: { 
-            [key: string]: { withdrawals: number, percentage: number } // Inclui a porcentagem
+            [key: string]: { withdrawals: number, percentage: number }
         }
     }> {
-        const dataInicioCorrigida = new Date(date_init);
+        const dataInicioCorrigida = new Date(startOfMonth);
         dataInicioCorrigida.setUTCHours(0, 0, 0, 1); 
     
-        const dataFimCorrigida = new Date(date_finish);
+        const dataFimCorrigida = new Date(endOfMonth);
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
     
         // Filtra os jogadores pelo ftd_date no intervalo especificado
@@ -444,10 +458,27 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         gte: dataInicioCorrigida,
                         lte: dataFimCorrigida
                     }
+                },
+                Transactions_month: {
+                    some: {
+                        type_transactions: 'WITHDRAWALS',
+                        date_transactions: {
+                            gte: date_init,
+                            lte: date_finish
+                        }
+                    },
                 }
             },
             include: {
-                Transactions_month: true,
+                Transactions_month: {
+                    where: {
+                        type_transactions: 'WITHDRAWALS', 
+                        date_transactions: {
+                            gte: date_init,
+                            lte: date_finish
+                        }
+                    }
+                },
                 Wallet: true
             }
         });
@@ -473,29 +504,27 @@ export class PrismaPlayersRepository implements PlayersRepository {
     
         // Processa os jogadores filtrados e suas transações
         players.forEach(player => {
-            // Verifica transações dentro do intervalo de FTD para somar no totalAmount
             player.Transactions_month.forEach(transaction => {
-                if (transaction.type_transactions === 'WITHDRAWALS') {
-                    const transactionDate = new Date(transaction.date_transactions ?? '');
-    
-                    // Filtra os depósitos realizados dentro do intervalo FTD
-                    if (transactionDate >= dataInicioCorrigida && transactionDate <= dataFimCorrigida) {
-                        const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
-                        totalWithdrawals += transactionWithdrawals; // Soma no totalAmount
-                    }
-    
-                    // Para os depósitos após o FTD, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth() + 1;
-                    const monthNames = [
-                        "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
-                        "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
-                    ];
-                    const monthName = monthNames[monthNumber - 1];
-    
-                    // Soma o valor da transação ao mês correspondente
-                    const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
-                    depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
+                const transactionWithdrawals = transaction.valor_total_transactions ?? 0;
+
+                const transactionDate = new Date(transaction.date_transactions ?? '');
+                const isTransactionInReferenceMonth = transactionDate >= startOfMonth && transactionDate <= endOfMonth;
+
+                // Se a transação está no mês de referência, soma ao totalWithdrawals
+                if (isTransactionInReferenceMonth) {
+                    totalWithdrawals += transactionWithdrawals;
                 }
+    
+                // Para os depósitos, adiciona no mapa de meses
+                const monthNumber = transactionDate.getUTCMonth(); // O mês é 0-indexado
+                const monthNames = [
+                    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+                ];
+                const monthName = monthNames[monthNumber];
+    
+                // Soma o valor da transação ao mês correspondente
+                depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
             });
         });
     

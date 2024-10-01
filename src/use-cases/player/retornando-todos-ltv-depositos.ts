@@ -52,12 +52,12 @@ export class RetornandoTodosAmountLtvUseCase {
                 const {
                     totalAmount,
                     depositAmountPerMonth
-                } = await this.playersRepository.getFullAmountByFtdDate(startOfMonth, endOfMonth);
+                } = await this.playersRepository.getFullAmountByFtdDate(startOfMonth, endOfMonth, data_inicio, data_fim);
 
                 const {
                     totalWithdrawals,
                     depositWithdrawalsPerMonth
-                } = await this.playersRepository.getFullWithdrawalsByFtdDate(startOfMonth, endOfMonth);
+                } = await this.playersRepository.getFullWithdrawalsByFtdDate(startOfMonth, endOfMonth, data_inicio, data_fim);
 
                 // Update overall totals
                 totalOverallAmount += totalAmount;
