@@ -22,7 +22,7 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>[], totalCount: number, depositCountsPerMonth: { [key: string]: { count: number, percentage: number } } }>
-    getFullAmountByFtdDate(startOfMonth: Date, endOfMonth: Date, date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
+    getFullAmountByFtdDate(date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
         include: {
             Transactions_month: true,
             Wallet: true
@@ -36,7 +36,7 @@ export interface PlayersRepository {
             Wallet: true
         }
     }>} | null>
-    getFullWithdrawalsByFtdDate(startOfMonth: Date, endOfMonth: Date, date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
+    getFullWithdrawalsByFtdDate(date_init: Date, date_finish: Date): Promise<{ players: Prisma.PlayerGetPayload<{
         include: {
             Transactions_month: true,
             Wallet: true
