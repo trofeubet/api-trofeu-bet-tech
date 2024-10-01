@@ -342,7 +342,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         dataFimCorrigida.setUTCHours(23, 59, 59, 999); // Fim do dia
 
         let skip = 0;
-        const take = 30000; // Tamanho da página
+        const take = 100000; // Tamanho da página
         let hasMorePlayers = true;
 
         while(hasMorePlayers) {
@@ -369,7 +369,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         where: {
                             type_transactions: 'DEPOSIT', 
                             date_transactions: {
-                                gte: date_init,
+                                gte: dataInicioCorrigida,
                                 lte: date_finish
                             }
                         }
@@ -419,12 +419,12 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     }
         
                     // Para os depósitos, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth(); // O mês é 0-indexado
+                    const monthNumber = transactionDate.getUTCMonth() + 1; 
                     const monthNames = [
                         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                     ];
-                    const monthName = monthNames[monthNumber];
+                    const monthName = monthNames[monthNumber - 1];
         
                     // Soma o valor da transação ao mês correspondente
                     depositAmountPerMonth[monthName].amount += transactionAmount;
@@ -486,7 +486,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
         dataFimCorrigida.setUTCHours(23, 59, 59, 999);
 
         let skip = 0;
-        const take = 30000; // Tamanho da página
+        const take = 100000; // Tamanho da página
         let hasMorePlayers = true;
 
         while(hasMorePlayers) {
@@ -514,7 +514,7 @@ export class PrismaPlayersRepository implements PlayersRepository {
                         where: {
                             type_transactions: 'WITHDRAWALS', 
                             date_transactions: {
-                                gte: date_init,
+                                gte: dataInicioCorrigida,
                                 lte: date_finish
                             }
                         }
@@ -564,12 +564,12 @@ export class PrismaPlayersRepository implements PlayersRepository {
                     }
         
                     // Para os depósitos, adiciona no mapa de meses
-                    const monthNumber = transactionDate.getUTCMonth(); // O mês é 0-indexado
+                    const monthNumber = transactionDate.getUTCMonth() + 1; // O mês é 0-indexado
                     const monthNames = [
                         "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
                         "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
                     ];
-                    const monthName = monthNames[monthNumber];
+                    const monthName = monthNames[monthNumber - 1];
         
                     // Soma o valor da transação ao mês correspondente
                     depositWithdrawalsPerMonth[monthName].withdrawals += transactionWithdrawals;
